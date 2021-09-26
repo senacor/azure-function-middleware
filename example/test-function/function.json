@@ -16,5 +16,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/test-function.js"
+  "scriptFile": "../dist/example/test-function/test-function.js"
 }

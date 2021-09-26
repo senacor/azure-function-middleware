@@ -1,20 +1,34 @@
-import {Context, HttpRequest} from "@azure/functions";
+import { Context, HttpRequest } from '@azure/functions';
+import { ApplicationError } from './applicationError';
 
-const middleware = (handler: (context: Context, request: HttpRequest) => Promise<void>, middlewares: Array<(context: Context, request: HttpRequest) => Promise<void>>) =>
-    async (context: Context, request: HttpRequest) => {
+export type MiddlewareFunction = (context: Context, request: HttpRequest) => Promise<void>;
+
+const middleware =
+    (handler: (context: Context, request: HttpRequest) => Promise<void>, middlewares: MiddlewareFunction[]) =>
+    async (context: Context, request: HttpRequest): Promise<void> => {
         try {
             for (const middlewareFunctions of middlewares) {
                 await middlewareFunctions(context, request);
             }
-            return handler(context, request);
+            return await handler(context, request);
         } catch (error) {
-            context.log.error(error);
-            if (error && error.status) {
-                context.res = error;
+            if (error instanceof ApplicationError) {
+                context.log.error(`Received application error with message ${error.message}`);
+                context.res = {
+                    status: error.status,
+                    body: error.body,
+                };
                 return;
             }
-            context.res = {status: 500, body: 'Internal server error'};
+            context.log.error(error);
+            context.res = {
+                status: 500,
+                body: {
+                    message: 'Internal server error',
+                },
+            };
+            return;
         }
-    }
+    };
 
 export default middleware;

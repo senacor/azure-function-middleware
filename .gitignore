@@ -2,6 +2,11 @@
 *.iml
 dist/*
 
+*/node_modules/*
 node_modules/*
 
-dist/*
+*/dist/*
+
+coverage/*
+
+*/local.settings.json
