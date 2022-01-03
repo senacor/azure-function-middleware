@@ -37,17 +37,6 @@ describe('The joi validator should', () => {
         expect(result).toBeUndefined();
     });
 
-    test('not call the validation when the body is empty', async () => {
-        requestMock.method = 'POST';
-        requestMock.body = undefined;
-        const schemaMock = mock<JoiValidator.ObjectSchema>();
-
-        const result = await sut(schemaMock)(contextMock, requestMock);
-
-        expect(schemaMock.validate).not.toBeCalled();
-        expect(result).toBeUndefined();
-    });
-
     test('fail when the validation was not successful', async () => {
         requestMock.method = 'POST';
         requestMock.body = 'test-body';

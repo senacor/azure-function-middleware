@@ -6,7 +6,7 @@ import { MiddlewareFunction } from './middleware';
 export default (schema: ObjectSchema, transformErrorMessage?: (message: string) => unknown): MiddlewareFunction => {
     return (context: Context, req: HttpRequest): Promise<void> => {
         const body = req.body;
-        if (req.method !== 'GET' && body) {
+        if (req.method !== 'GET') {
             const validationResult = schema.validate(body);
             if (validationResult && validationResult.error) {
                 context.log.verbose(validationResult);
