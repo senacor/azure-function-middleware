@@ -1,11 +1,12 @@
 import axios from 'axios';
+import waitTillFunctionReady from './waitTillFunctionReady';
 
 describe('The example azure function is started and the JOI validation should', () => {
     beforeAll(async () => {
         axios.defaults.validateStatus = (status) => {
             return Number.isInteger(status);
         };
-        await waitTillFunctionReady();
+        await waitTillFunctionReady(() => axios.post(`http://localhost:8080/api/validation`, { name: 'Test' }), 200)();
     });
 
     test('execute the request without an error', async () => {
@@ -39,17 +40,3 @@ describe('The example azure function is started and the JOI validation should', 
         expect(responseUndefinedBody.data).toEqual({ message: '"value" is required' });
     });
 });
-
-const waitTillFunctionReady = async () => {
-    for (let counter = 0; counter < 10; counter++) {
-        console.log('Try to communicate with function');
-
-        const response = await axios.post(`http://localhost:8080/api/validation`, { name: 'Test' });
-
-        if (response.status === 200) {
-            return;
-        }
-        await new Promise((r) => setTimeout(r, 500));
-    }
-    throw Error('Function could not be started within 5 seconds');
-};
