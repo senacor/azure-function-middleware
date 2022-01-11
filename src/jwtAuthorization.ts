@@ -26,7 +26,7 @@ export default <T>(rules: Rule<T>[]): MiddlewareFunction => {
                     .map((ruleFunction) => evaluate(ruleFunction, parameters, jwt))
                     .reduce((previousValue, currentValue) => previousValue && currentValue);
                 if (!validationResult) {
-                    return Promise.reject(new ApplicationError('Authorization error', 400, 'Unauthorized'));
+                    return Promise.reject(new ApplicationError('Authorization error', 401, 'Unauthorized'));
                 } else {
                     return Promise.resolve();
                 }

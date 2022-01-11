@@ -75,6 +75,6 @@ describe('The authorization middleware should', () => {
                     parameterExtractor: () => 'test',
                 },
             ])(contextMock, requestMock),
-        ).rejects.toEqual(new ApplicationError('Authorization error', 400, 'Unauthorized'));
+        ).rejects.toEqual(new ApplicationError('Authorization error', 401, 'Unauthorized'));
     });
 });
