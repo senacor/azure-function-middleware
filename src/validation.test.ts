@@ -27,13 +27,14 @@ describe('The joi validator should', () => {
         expect(result).toBeUndefined();
     });
 
-    test('not call the validation when the method is GET', async () => {
+    test('successfully validate the object extracted through the passed function', async () => {
         requestMock.method = 'GET';
         const schemaMock = mock<JoiValidator.ObjectSchema>();
+        schemaMock.validate.mockReturnValue({ error: undefined, value: 'Test Validation' });
 
-        const result = await sut(schemaMock)(contextMock, requestMock);
+        const result = await sut(schemaMock, undefined, () => 'test-extracted-content')(contextMock, requestMock);
 
-        expect(schemaMock.validate).not.toBeCalled();
+        expect(schemaMock.validate).toBeCalledWith('test-extracted-content');
         expect(result).toBeUndefined();
     });
 

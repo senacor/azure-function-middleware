@@ -62,12 +62,22 @@ The body of the response could be customized by adding a transformer like in the
 
 ```typescript
 export default middleware(handler, [
-  validation(accountWithConnectionRequestSchema(), (message) => ({
+  validation(schema, (message) => ({
     type: 'Invalid  request object',
     detail: message,
   })),
 ])
 ```
+
+By default the request body is getting validated. To validate other parts of the request or context the `extractValidationContentFromRequest` function could be used, when initializing the middleware.
+
+```typescript
+export default middleware(handler, [
+  validation(schema, undefined, (req, context) => req.query.name)),
+])
+```
+
+In this example the `name` contained in the query is getting validated against the passed request.
 
 ### Authorization
 
