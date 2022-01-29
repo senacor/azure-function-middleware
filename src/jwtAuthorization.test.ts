@@ -31,7 +31,7 @@ describe('The authorization middleware should', () => {
     });
 
     test('fail caused by missing authorization header', async () => {
-        requestMock.headers.authorization = undefined;
+        requestMock.headers.authorization = '';
         const jwtExtractorMock = jest.fn();
         const parameterExtractorMock = jest.fn();
 
