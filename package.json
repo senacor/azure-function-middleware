@@ -26,10 +26,9 @@
     "license": "MIT",
     "devDependencies": {
         "@types/jest": "^27.0.3",
-        "@typescript-eslint/eslint-plugin": "^4.33.0",
+        "@typescript-eslint/eslint-plugin": "^5.10.2",
         "@typescript-eslint/parser": "^5.10.2",
-        "axios": "^0.25.0",
-        "eslint": "^7.32.0",
+        "eslint": "^8.8.0",
         "eslint-config-prettier": "^8.3.0",
         "eslint-plugin-prettier": "^4.0.0",
         "jest": "^27.4.5",
@@ -40,6 +39,7 @@
     },
     "dependencies": {
         "@azure/functions": "^3.0.0",
+        "axios": "^0.25.0",
         "joi": "^17.5.0",
         "jwt-decode": "^3.1.2"
     }
