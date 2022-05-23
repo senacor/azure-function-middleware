@@ -95,3 +95,16 @@ export type Rule<T> = {
     jwtExtractor: (jwt: T) => string;
 };
 ```
+
+### Post function execution
+
+To execute a function after the handler is called, a post function execution could be defined. The post function could be used to close for example a database connection or something similar.
+
+```typescript
+const afterFunction = (context: Context, request: HttpRequest): Promise<void> => {
+    context.log("Called after function")
+    return;
+}
+
+export default middleware(functionHandler, [], [afterFunction]);
+```

@@ -13,6 +13,14 @@ describe('The middleware layer should', () => {
         contextMock.log.error = jest.fn();
     });
 
+    test('successfully call the passed functions without any middleware passed', async () => {
+        const handlerMock = jest.fn();
+
+        await sut(handlerMock)(contextMock, requestMock);
+        
+        expect(handlerMock).toHaveBeenCalledWith(contextMock, requestMock);
+    });
+
     test('successfully call the middleware and the passed functions', async () => {
         const handlerMock = jest.fn();
         const middlewareOneMock = jest.fn();
@@ -22,6 +30,20 @@ describe('The middleware layer should', () => {
 
         expect(middlewareOneMock).toHaveBeenCalledWith(contextMock, requestMock);
         expect(middlewareTwoMock).toHaveBeenCalledWith(contextMock, requestMock);
+        expect(handlerMock).toHaveBeenCalledWith(contextMock, requestMock);
+    });
+
+    test('successfully call the pre middleware and post middleware and the passed functions', async () => {
+        const handlerMock = jest.fn();
+        const middlewareOneMock = jest.fn();
+        const middlewareTwoMock = jest.fn();
+        const middlewarePostMock = jest.fn();
+
+        await sut(handlerMock, [middlewareOneMock, middlewareTwoMock], [middlewarePostMock])(contextMock, requestMock);
+
+        expect(middlewareOneMock).toHaveBeenCalledWith(contextMock, requestMock);
+        expect(middlewareTwoMock).toHaveBeenCalledWith(contextMock, requestMock);
+        expect(middlewarePostMock).toHaveBeenCalledWith(contextMock, requestMock);
         expect(handlerMock).toHaveBeenCalledWith(contextMock, requestMock);
     });
 
