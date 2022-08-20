@@ -17,7 +17,7 @@ describe('The middleware layer should', () => {
         const handlerMock = jest.fn();
 
         await sut(handlerMock)(contextMock, requestMock);
-        
+
         expect(handlerMock).toHaveBeenCalledWith(contextMock, requestMock);
     });
 
