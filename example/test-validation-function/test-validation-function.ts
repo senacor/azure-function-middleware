@@ -13,8 +13,8 @@ const functionHandler = async (context: Context, req: HttpRequest): Promise<void
 };
 
 const afterFunction = (context: Context, request: HttpRequest): Promise<void> => {
-    context.log("Called after function")
+    context.log('Called after function');
     return;
-}
+};
 
 export default middleware(functionHandler, [validation(schema)], [afterFunction]);
