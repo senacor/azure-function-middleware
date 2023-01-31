@@ -26,6 +26,7 @@
     },
     "dependencies": {
         "@azure/functions": "^3.0.0",
+        "@types/node": "^18.11.18",
         "joi": "^17.5.0"
     }
 }
