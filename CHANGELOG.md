@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.4.0 (04.02.2023)
+
+- Updated axios dependency
+- Updated test and build dependencies
+
 ## 1.3.0 (20.8.2022)
 
 - Updated production relevant dependency "@azure/functions" to 3.2.0
