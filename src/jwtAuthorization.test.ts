@@ -28,6 +28,8 @@ describe('The authorization middleware should', () => {
                 parameterExtractor: () => 'test',
             },
         ])(contextMock, requestMock);
+
+        expect(contextMock.bindingData).toHaveProperty('jwt', 'JWT-TEST');
     });
 
     test('fail caused by missing authorization header', async () => {

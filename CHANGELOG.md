@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.0.0 (01.04.2023)
+- Added auto-logging functionality to the library that enhances searchability of saved log statements in Azure AppInsights by storing context properties in commonProperties. 
+- Removed the MiddlewareFunction-Type in favor for the azure-built-in one 
+- There are now two types of middleware available: one with error handling and one without. This is helpful because durable functions must throw their errors, otherwise the orchestrator will not restart a failed function.
+
+
 ## 1.5.0 (27.03.2023)
 
 - Added additional helper function to authentication requests by header parameters
@@ -28,5 +34,5 @@
 Features:
 
   - add middleware for azure function to use generic functionality across multiple azure functions
-  - add [joi](https://github.com/sideway/joi) validation as integration for the middleware to validate incomming requests against a schema
+  - add [joi](https://github.com/sideway/joi) validation as integration for the middleware to validate incoming requests against a schema
   - add JWT authorization as integration for the middleware to authorize requests against a passed JWT

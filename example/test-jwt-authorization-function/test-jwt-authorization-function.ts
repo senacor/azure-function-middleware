@@ -7,11 +7,15 @@ const functionHandler = async (context: Context): Promise<void> => {
     context.res = { status: 204 };
 };
 
-export default middleware(functionHandler, [
-    authorization([
-        {
-            parameterExtractor: (parameters: ContextBindingData) => parameters.id,
-            jwtExtractor: (jwt: { userId: string }) => jwt.userId,
-        },
-    ]),
-]);
+export default middleware(
+    [
+        authorization([
+            {
+                parameterExtractor: (parameters: ContextBindingData) => parameters.id,
+                jwtExtractor: (jwt: { userId: string }) => jwt.userId,
+            },
+        ]),
+    ],
+    functionHandler,
+    [],
+);

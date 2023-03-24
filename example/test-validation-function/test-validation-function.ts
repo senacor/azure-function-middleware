@@ -18,4 +18,4 @@ const afterFunction = (context: Context): Promise<void> => {
     return;
 };
 
-export default middleware(functionHandler, [validation(schema)], [afterFunction]);
+export default middleware([validation(schema)], functionHandler, [afterFunction]);

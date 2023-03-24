@@ -7,4 +7,4 @@ const functionHandler = async (context: Context): Promise<void> => {
     context.res = { status: 204 };
 };
 
-export default middleware(functionHandler, [headerAuthentication()]);
+export default middleware([headerAuthentication()], functionHandler, []);

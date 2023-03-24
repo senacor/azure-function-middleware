@@ -122,3 +122,17 @@ const afterFunction = (context: Context, request: HttpRequest): Promise<void> =>
 
 export default middleware(functionHandler, [], [afterFunction]);
 ```
+
+### Logging and Tracing with appInsights
+
+To enhance the logging and tracing with appInsights you can wrap your function with the appInsightWrapper. Currently, this will log the query-parameter
+and binding-context of request into the customProperties, which will make your logs more searchable.
+
+Use the `AppInsightForHttpTrigger` for your http-functions:
+```typescript
+import {AppInsightForHttpTrigger} from "./appInsightsWrapper";
+
+export default middleware([AppInsightForHttpTrigger.setup], handler, [AppInsightForHttpTrigger.finalizeAppInsight])
+```
+
+and the `AppInsightForNonHttpTrigger` for functions with different kinds of trigger (e.g. `activityTrigger` or `timerTrigger`).

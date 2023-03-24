@@ -1,7 +1,6 @@
-import { Context, ContextBindingData, HttpRequest } from '@azure/functions';
+import { AzureFunction, Context, ContextBindingData, HttpRequest } from '@azure/functions';
 import jwtDecode from 'jwt-decode';
 import { ApplicationError } from './applicationError';
-import { MiddlewareFunction } from './middleware';
 
 const evaluate = <T>(rule: Rule<T>, parameters: ContextBindingData, jwt: T) => {
     const pathParameter = rule.parameterExtractor(parameters);
@@ -14,7 +13,7 @@ export type Rule<T> = {
     jwtExtractor: (jwt: T) => string;
 };
 
-export default <T>(rules: Rule<T>[]): MiddlewareFunction => {
+export default <T>(rules: Rule<T>[], errorResponseBody?: unknown): AzureFunction => {
     return (context: Context, req: HttpRequest): Promise<void> => {
         const authorizationHeader = req.headers.authorization;
         const parameters = context.bindingData;
@@ -26,12 +25,15 @@ export default <T>(rules: Rule<T>[]): MiddlewareFunction => {
                     .map((ruleFunction) => evaluate(ruleFunction, parameters, jwt))
                     .reduce((previousValue, currentValue) => previousValue && currentValue);
                 if (!validationResult) {
-                    return Promise.reject(new ApplicationError('Authorization error', 401, 'Unauthorized'));
+                    return Promise.reject(
+                        new ApplicationError('Authorization error', 401, errorResponseBody ?? 'Unauthorized'),
+                    );
                 } else {
+                    context.bindingData = { ...context.bindingData, ...{ jwt } };
                     return Promise.resolve();
                 }
             }
         }
-        return Promise.reject(new ApplicationError('Authorization error', 401));
+        return Promise.reject(new ApplicationError('Authorization error', 401, errorResponseBody ?? 'Unauthorized'));
     };
 };

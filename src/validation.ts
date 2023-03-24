@@ -1,17 +1,14 @@
-import { Context, HttpRequest } from '@azure/functions';
-import { ObjectSchema } from 'joi';
+import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import { AnySchema } from 'joi';
 import { ApplicationError } from './applicationError';
-import { MiddlewareFunction } from './middleware';
 
 export default (
-    schema: ObjectSchema,
+    schema: AnySchema,
     transformErrorMessage?: (message: string) => unknown,
     extractValidationContentFromRequest?: (context: Context, req: HttpRequest) => unknown,
-): MiddlewareFunction => {
+): AzureFunction => {
     return (context: Context, req: HttpRequest): Promise<void> => {
-        const toBeValidatedContent = extractValidationContentFromRequest
-            ? extractValidationContentFromRequest(context, req)
-            : req.body;
+        const toBeValidatedContent = extractValidationContentFromRequest?.(context, req) ?? req.body;
         const validationResult = schema.validate(toBeValidatedContent);
         if (validationResult && validationResult.error) {
             context.log.verbose(validationResult);
