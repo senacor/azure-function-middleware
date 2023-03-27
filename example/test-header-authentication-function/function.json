@@ -1,0 +1,19 @@
+{
+    "bindings": [{
+            "authLevel": "Anonymous",
+            "type": "httpTrigger",
+            "direction": "in",
+            "name": "req",
+            "methods": [
+                "post"
+            ],
+            "route": "authentication"
+        },
+        {
+            "type": "http",
+            "direction": "out",
+            "name": "res"
+        }
+    ],
+    "scriptFile": "../dist/example/test-header-authentication-function/test-header-authentication-function.js"
+}
