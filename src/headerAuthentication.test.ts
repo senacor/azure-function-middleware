@@ -13,7 +13,7 @@ describe('The header authentication middleware should', () => {
     });
 
     test('successfully resolves when the default "x-ms-client-principal" header is present', async () => {
-        requestMock.headers['x-ms-client-principal'] = 'Test Principal';
+        requestMock.headers['x-ms-client-principal-id'] = 'Test Principal';
 
         await expect(sut()(contextMock, requestMock)).resolves.not.toThrow();
     });
@@ -25,16 +25,32 @@ describe('The header authentication middleware should', () => {
     test('fail caused by missing default "x-ms-client-principal" header', async () => {
         // suppressing in order to enforce missing header
         // @ts-ignore
-        requestMock.headers['x-ms-client-principal'] = undefined;
+        requestMock.headers['x-ms-client-principal-id'] = undefined;
 
         await expect(sut()(contextMock, requestMock)).rejects.toEqual(
             new ApplicationError('Authentication error', 403, 'No sophisticated credentials provided'),
         );
     });
 
-    test('fail caused by oassed header validation function returns false', async () => {
+    test('fail caused by missing default "x-ms-client-principal" header and using the provided error body', async () => {
+        // suppressing in order to enforce missing header
+        // @ts-ignore
+        requestMock.headers['x-ms-client-principal-id'] = undefined;
+
+        await expect(sut(undefined, {error: 'Please authenticate properly'})(contextMock, requestMock)).rejects.toEqual(
+            new ApplicationError('Authentication error', 403, {error: 'Please authenticate properly'}),
+        );
+    });
+
+    test('fail caused by passed header validation function returns false', async () => {
         await expect(sut(() => false)(contextMock, requestMock)).rejects.toEqual(
             new ApplicationError('Authentication error', 403, 'No sophisticated credentials provided'),
+        );
+    });
+
+    test('fail caused by passed header validation function returns false and use the provided error body', async () => {
+        await expect(sut(() => false, {error: 'Please authenticate properly'})(contextMock, requestMock)).rejects.toEqual(
+            new ApplicationError('Authentication error', 403, {error: 'Please authenticate properly'}),
         );
     });
 });

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.5.0 (27.03.2023)
+
+- Added additional helper function to authentication requests by header parameters
+- Updated multiple dependencies
+
 ## 1.4.0 (04.02.2023)
 
 - Updated axios dependency

@@ -69,7 +69,7 @@ export default middleware(handler, [
 ])
 ```
 
-By default the request body is getting validated. To validate other parts of the request or context the `extractValidationContentFromRequest` function could be used, when initializing the middleware.
+By default, the request body is getting validated. To validate other parts of the request or context the `extractValidationContentFromRequest` function could be used, when initializing the middleware.
 
 ```typescript
 export default middleware(handler, [
@@ -95,6 +95,20 @@ export type Rule<T> = {
     jwtExtractor: (jwt: T) => string;
 };
 ```
+
+### Header authentication
+
+To authenticate requests against a rule, the header could be used. Therefore, the `headerAuthentication` pre-function is available.
+
+```typescript
+export default middleware(functionHandler, [headerAuthentication()]);
+```
+
+When no parameter is passed to the `headerAuthentication` the header `x-ms-client-principal-id` is checked, if present or not. This header is added to a request by the Azure plattform when e.g. a JWT Token is successfully validated.
+The `x-ms-client-principal-id` and `x-ms-client-principal-name` header could only be set by the Azure plattform (https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-user-identities).
+
+It is also possible to pass a function to validate a specific header, like checking for basic authentication credentials. 
+This could be done in the following manner `headerAuthentication((context, request) => {...})`.
 
 ### Post function execution
 
