@@ -24,7 +24,7 @@ jobs:
         shell: bash
         working-directory: ./example
         run: |
-          npm ci && npm install -g azure-functions-core-tools@3 --unsafe-perm true
+          npm ci && npm install -g azure-functions-core-tools@4 --unsafe-perm true
       - name: start-test-function
         shell: bash
         working-directory: ./example
