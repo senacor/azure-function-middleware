@@ -1,12 +1,11 @@
-import { Context, HttpRequest } from '@azure/functions';
+import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { ApplicationError } from './applicationError';
-import { MiddlewareFunction } from './middleware';
 import { HttpRequestHeaders } from '@azure/functions/types/http';
 
 export default (
     validateUsingHeaderFn?: (headers: HttpRequestHeaders) => boolean,
     errorResponseBody?: unknown,
-): MiddlewareFunction => {
+): AzureFunction => {
     return (context: Context, req: HttpRequest): Promise<void> => {
         if (validateUsingHeaderFn) {
             const validationResult = validateUsingHeaderFn(req.headers);

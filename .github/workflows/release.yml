@@ -2,7 +2,9 @@ name: Release
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
+      - 'alpha/**'
 
 jobs:
   build:
@@ -10,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [ 14.x ]
+        node-version: [ 16.x ]
 
     steps:
       - uses: actions/checkout@v3
@@ -38,3 +40,4 @@ jobs:
         with:
           name: Release v${{ steps.publish.outputs.version }}
           tag_name: v${{ steps.publish.outputs.version }}
+          prerelease: ${{ contains(github.head_ref, 'alpha') }}
