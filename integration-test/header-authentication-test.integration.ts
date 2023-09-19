@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import waitTillFunctionReady from './waitTillFunctionReady';
 
 describe('The example azure function is started and the header authentication should execute the request', () => {

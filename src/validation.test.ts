@@ -1,9 +1,10 @@
-import { mock } from 'jest-mock-extended';
 import { Context, HttpRequest } from '@azure/functions';
-import * as JoiValidator from 'joi';
+import { mock } from 'jest-mock-extended';
+import JoiValidator from 'joi';
 import { ValidationError } from 'joi';
+
+import { ApplicationError } from './error';
 import sut from './validation';
-import { ApplicationError } from './applicationError';
 
 jest.mock('joi');
 describe('The joi validator should', () => {

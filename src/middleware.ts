@@ -1,102 +1,92 @@
 import { AzureFunction, Context } from '@azure/functions';
-import { ApplicationError } from './applicationError';
 
-type ErrorWithMessage = {
-    message: string;
-    stack?: string;
-};
+import { errorHandler } from './error';
 
-const isErrorWithMessage = (error: unknown): error is ErrorWithMessage => {
-    return (
-        typeof error === 'object' &&
-        error !== null &&
-        'message' in error &&
-        typeof (error as Record<string, unknown>).message === 'string'
-    );
-};
+type ErrorResult = { $failed: true; $error: unknown };
 
-const logErrorObject = (error: object | null, context: Context) => {
-    if (error === null) {
-        context.log.error('The provided error was eq to null - unable to log a specific error-message');
-        return;
-    }
-
-    if (isErrorWithMessage(error)) {
-        context.log.error({ message: error.message, stack: error.stack });
-    } else {
-        try {
-            const errorAsJson = JSON.stringify(error);
-            if (errorAsJson === '{}') {
-                context.log.error(error.toString());
-            }
-        } catch (_) {
-            //Fallback in case there's an error stringify
-            context.log.error(error.toString());
-        }
-    }
-};
+const isErrorResult = (result: unknown | ErrorResult): result is ErrorResult => (result as ErrorResult)?.$failed;
 
 const middlewareCore =
-    (beforeExecution: AzureFunction[], handler: AzureFunction, afterExecution: AzureFunction[]) =>
-    async (context: Context, ...args: unknown[]): Promise<void> => {
+    (beforeExecution: AzureFunction[], handler: AzureFunction, postExecution: AzureFunction[]) =>
+    async (context: Context, ...args: unknown[]): Promise<unknown | ErrorResult> => {
+        let error = undefined;
+
         if (beforeExecution) {
             for (const middlewareFunctions of beforeExecution) {
-                await middlewareFunctions(context, ...args);
+                try {
+                    // TODO: Give before-execution functions a parameter to indicate if the handler failed. So each function has the ability to decide for itself, if it should get executed.
+                    if (error === undefined) {
+                        await middlewareFunctions(context, ...args);
+                    }
+                } catch (err) {
+                    error = err;
+                }
             }
         }
-        const handlerResult = await handler(context, ...args);
-        if (afterExecution) {
-            for (const middleware of afterExecution) {
+
+        let handlerResult;
+
+        if (error === undefined) {
+            try {
+                handlerResult = await handler(context, ...args);
+            } catch (err) {
+                error = err;
+            }
+        }
+
+        // TODO: Give post-execution functions a parameter to indicate if the handler failed. So each function has the ability to decide for itself, if it should get executed.
+        if (postExecution) {
+            for (const middleware of postExecution) {
                 await middleware(context, ...args);
             }
+        }
+
+        if (error !== undefined) {
+            context.log.error(`An uncaught error occurred in the execution of the hander: ${error}`);
+            return { $failed: true, $error: error };
         }
         return handlerResult;
     };
 
 export type Options = {
-    errorResponseHandler?: (error: unknown, context: Context) => void;
+    errorResponseHandler?: (error: unknown) => {
+        [key: string]: unknown;
+    };
+    disableErrorHandling?: boolean;
 };
 
-const middleware =
+async function middlewareWrapper(
+    beforeExecution: AzureFunction[],
+    handler: (context: Context, ...args: unknown[]) => Promise<unknown> | void,
+    postExecution: AzureFunction[],
+    context: Context,
+    args: unknown[],
+    opts?: Options,
+) {
+    const result = await middlewareCore(beforeExecution, handler, postExecution)(context, ...args);
+
+    if (isErrorResult(result)) {
+        if (opts?.disableErrorHandling) {
+            throw result.$error;
+        }
+
+        context.res = errorHandler(result.$error, context, opts);
+        return;
+    }
+
+    return result;
+}
+
+export const middleware =
     (beforeExecution: AzureFunction[], handler: AzureFunction, postExecution: AzureFunction[], opts?: Options) =>
-    async (context: Context, ...args: unknown[]): Promise<void> => {
+    async (context: Context, ...args: unknown[]): Promise<unknown> => {
+        if (opts?.disableErrorHandling) {
+            return await middlewareWrapper(beforeExecution, handler, postExecution, context, args, opts);
+        }
+
         try {
-            return await middlewareCore(beforeExecution, handler, postExecution)(context, ...args);
+            return await middlewareWrapper(beforeExecution, handler, postExecution, context, args, opts);
         } catch (error) {
-            if (error instanceof ApplicationError) {
-                context.log.error(`Received application error with message ${error.message}`);
-                context.res = {
-                    status: error.status,
-                    body: error.body,
-                };
-                return;
-            }
-
-            switch (typeof error) {
-                case 'string':
-                    context.log.error(error);
-                    break;
-                case 'object':
-                    logErrorObject(error, context);
-                    break;
-                default:
-                    context.log(`The error object has a type, that is not suitable for logging: ${typeof error}`);
-            }
-
-            if (opts?.errorResponseHandler === undefined) {
-                context.res = {
-                    status: 500,
-                    body: {
-                        message: 'Internal server error',
-                    },
-                };
-                return;
-            } else {
-                opts.errorResponseHandler(error, context);
-                return;
-            }
+            context.res = errorHandler(error, context, opts);
         }
     };
-
-export default middleware;
-export const middlewareWithoutErrorHandling = middlewareCore;

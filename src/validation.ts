@@ -1,6 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { AnySchema } from 'joi';
-import { ApplicationError } from './applicationError';
+
+import { ApplicationError } from './error';
 
 export default (
     schema: AnySchema,

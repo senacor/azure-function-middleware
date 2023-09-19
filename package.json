@@ -1,6 +1,6 @@
 {
     "name": "@senacor/azure-function-middleware",
-    "version": "2.0.1",
+    "version": "2.1.0",
     "description": "Middleware for azure functions to handle authentication, authorization, error handling and logging",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -25,6 +25,7 @@
     "author": "florian.rudisch@senacor.com",
     "license": "MIT",
     "devDependencies": {
+        "@trivago/prettier-plugin-sort-imports": "^4.2.0",
         "@types/jest": "^27.0.3",
         "@typescript-eslint/eslint-plugin": "^5.10.2",
         "@typescript-eslint/parser": "^5.10.2",

@@ -1,7 +1,8 @@
-import { mock } from 'jest-mock-extended';
 import { Context, HttpRequest } from '@azure/functions';
+import { mock } from 'jest-mock-extended';
+
+import { ApplicationError } from './error';
 import sut from './headerAuthentication';
-import { ApplicationError } from './applicationError';
 
 describe('The header authentication middleware should', () => {
     const contextMock = mock<Context>();
@@ -24,6 +25,7 @@ describe('The header authentication middleware should', () => {
 
     test('fail caused by missing default "x-ms-client-principal" header', async () => {
         // suppressing in order to enforce missing header
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         requestMock.headers['x-ms-client-principal-id'] = undefined;
 
@@ -34,12 +36,13 @@ describe('The header authentication middleware should', () => {
 
     test('fail caused by missing default "x-ms-client-principal" header and using the provided error body', async () => {
         // suppressing in order to enforce missing header
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         requestMock.headers['x-ms-client-principal-id'] = undefined;
 
-        await expect(sut(undefined, {error: 'Please authenticate properly'})(contextMock, requestMock)).rejects.toEqual(
-            new ApplicationError('Authentication error', 403, {error: 'Please authenticate properly'}),
-        );
+        await expect(
+            sut(undefined, { error: 'Please authenticate properly' })(contextMock, requestMock),
+        ).rejects.toEqual(new ApplicationError('Authentication error', 403, { error: 'Please authenticate properly' }));
     });
 
     test('fail caused by passed header validation function returns false', async () => {
@@ -49,8 +52,8 @@ describe('The header authentication middleware should', () => {
     });
 
     test('fail caused by passed header validation function returns false and use the provided error body', async () => {
-        await expect(sut(() => false, {error: 'Please authenticate properly'})(contextMock, requestMock)).rejects.toEqual(
-            new ApplicationError('Authentication error', 403, {error: 'Please authenticate properly'}),
-        );
+        await expect(
+            sut(() => false, { error: 'Please authenticate properly' })(contextMock, requestMock),
+        ).rejects.toEqual(new ApplicationError('Authentication error', 403, { error: 'Please authenticate properly' }));
     });
 });

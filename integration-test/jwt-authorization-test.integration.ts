@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import waitTillFunctionReady from './waitTillFunctionReady';
 
 // Token generated with https://jwt.io/ containing the "userId" "c8e65ca7-a008-4b1c-b52a-4ad0ee417017"

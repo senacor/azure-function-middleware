@@ -1,7 +1,8 @@
 import { Context, HttpRequest } from '@azure/functions';
 import * as appInsights from 'applicationinsights';
-import { createAppInsightsLogger, consoleLogger } from './Logger';
 import { TelemetryClient } from 'applicationinsights';
+
+import { consoleLogger, createAppInsightsLogger } from './Logger';
 
 const telemetryClients: { [key: string]: TelemetryClient } = {};
 

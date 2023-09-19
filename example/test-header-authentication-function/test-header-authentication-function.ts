@@ -1,5 +1,6 @@
 import { Context } from '@azure/functions';
-import middleware from '../../src/middleware';
+
+import { middleware } from '../../src';
 import headerAuthentication from '../../src/headerAuthentication';
 
 const functionHandler = async (context: Context): Promise<void> => {
