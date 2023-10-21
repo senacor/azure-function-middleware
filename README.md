@@ -1,9 +1,21 @@
 # Azure Function Middleware
 
-Azure Function Middleware provides a simple way to use the middleware pattern for Azure Functions with NodeJS in order to define cross-cutting functionality such as schema validation, authorization and error handling. 
+Introduction
+
+The Azure Function Middleware introduces a middleware pattern for Azure Functions in Node.js, enhancing the development 
+experience by simplifying the integration of cross-cutting concerns such as schema validation, authorization, and error handling.
+
+## Installation
+
+Before you integrate this middleware into your project, ensure you have Node.js installed, and you're familiar with Azure Functions. Follow these steps to set up:
+
+
+```bash
+npm install @senacor/azure-function-middleware
+```
 
 ## Usage
-The interface is simple to use and could be easily expanded: 
+The middleware interface is intuitive, designed for expansion, and integrates seamlessly with Azure Functions. Here's a quick example to get you started:
 
 ```typescript
 const schema = Joi.object().keys({
@@ -14,14 +26,15 @@ const functionHandler = async (context: Context, req: HttpRequest): Promise<void
     context.res = { status: 201 };
 };
 
-export default middleware(functionHandler, [validation(schema)]);
+export default middleware([validation(schema), functionHandler, []]);
 ```
 
-The goal is to provide a minimal feature set with generic functionality and an easy interface to create other middleware functions, which could be used for an Azure function.
+This pattern aims to deliver a core set of features and a simplified interface for creating additional middleware functions tailored for Azure Functions.
 
 ## Error Handling
 
-The middleware provides a central way to handle errors occurring in the control flow of the function. Every error thrown within the function gets caught by the middleware and processed. To define the correct response to a specific error the following structure can be thrown:
+Centralized error management is a key feature, ensuring all errors within the function's flow are intercepted and appropriately handled. 
+Specific error responses can be defined by throwing errors in the following format:
 
 ```typescript
 export class ApplicationError<T> extends Error {
@@ -34,26 +47,29 @@ Any error thrown in the function with this signature is getting returned to the 
 
 ## Generic Functions
 
-For additional generic functionality like request validation or authorization functions could be defined. The functions need to have the following structure:
+The middleware supports the integration of generic functions like request validation or authorization. 
+These functions must comply with the 'AzureFunction' type from the '@azure/functions' package. 
+They are crucial for extending the middleware's capabilities while adhering to Azure's function signature requirements.
 
 ```typescript
-export type MiddlewareFunction = (context: Context, request: HttpRequest) => Promise<void>;
+import { AzureFunction } from '@azure/functions';
+
+// 'AzureFunction' type signature
+export type AzureFunction = (context: Context, ...args: any[]) => Promise<any> | void;
+
+// Configuring middleware with generic functions
+export default middleware([validation(schema)], functionHandler, []);
 ```
 
-The function receives the Azure Function context and request to operate. The function needs to be passed when the middleware is configured. 
-
-```typescript
-export default middleware(functionHandler, [validation(schema)]);
-```
-
-In the above example a `validation` function is passed with a schema. All passed functions are called before the in the defined order before the handler function containing the logic for the request is called.
+Such generic functions are executed in sequence before the main handler function. 
+If a post-execution function is necessary, it can be included in the postExecution array, the third argument in the middleware function.
 
 ### Validation
 
 The function to validate requests is based on [Joi](https://www.npmjs.com/package/joi). The usage is fairly simply:
 
 ```typescript
-export default middleware(functionHandler, [validation(schema)]);
+export default middleware([validation(schema)], functionHandler, []);
 ```
 
 The passed schema is a Joi ObjectSchema to check the passed request against. When the request is valid against the schema, the next middleware function gets called. In case the check of the request against the schema is invalid, the middleware function throws an error, canceling the request and returning aan `400 - Bad Request` with the Joi error message.
@@ -72,16 +88,19 @@ export default middleware(handler, [
 By default, the request body is getting validated. To validate other parts of the request or context the `extractValidationContentFromRequest` function could be used, when initializing the middleware.
 
 ```typescript
-export default middleware(handler, [
-  validation(schema, undefined, (req, context) => req.query.name)),
-])
+export default middleware([
+    validation(schema, undefined, (req, context) => req.query.name)],
+    handler, 
+    []
+)
+
 ```
 
 In this example the `name` contained in the query is getting validated against the passed request.
 
 ### Authorization
 
-To authorize a request the middleware function `authorization` could be used. The function is verifying a request parameter against a JWT Bearer Token. The information get extracted using two functions for the correct parameter and token counterpart.
+The authorization function verifies request parameters against JWT Bearer Tokens, employing customizable extraction functions for flexible security checks.
 
 ```typescript
 export default middleware(functionHandler, [authorization([])]);
@@ -112,15 +131,15 @@ This could be done in the following manner `headerAuthentication((context, reque
 
 ### Post function execution
 
-To execute a function after the handler is called, a post function execution could be defined. The post function could be used to close for example a database connection or something similar.
+Post-execution functions, ideal for tasks like closing database connections, can be defined to run after the main handler execution.
 
 ```typescript
-const afterFunction = (context: Context, request: HttpRequest): Promise<void> => {
+const postFunction = (context: Context, request: HttpRequest): Promise<void> => {
     context.log("Called after function")
     return;
 }
 
-export default middleware(functionHandler, [], [afterFunction]);
+export default middleware(functionHandler, [], [postFunction]);
 ```
 
 ### Logging and Tracing with appInsights
@@ -136,3 +155,7 @@ export default middleware([AppInsightForHttpTrigger.setup], handler, [AppInsight
 ```
 
 and the `AppInsightForNonHttpTrigger` for functions with different kinds of trigger (e.g. `activityTrigger` or `timerTrigger`).
+
+## Support and Contact
+
+If you encounter any issues or have questions about using this middleware, please file an issue in this repository or contact the maintainers at <florian.rudisch@senacor.com> or <manuel.kniep@senacor.com>.
