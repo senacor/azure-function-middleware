@@ -1,6 +1,6 @@
-import { SeverityLevel } from 'applicationinsights/out/Declarations/Contracts';
-import { TelemetryClient } from 'applicationinsights';
 import { Logger } from '@azure/functions';
+import { TelemetryClient } from 'applicationinsights';
+import { SeverityLevel } from 'applicationinsights/out/Declarations/Contracts';
 
 const consoleDefaultLog = (message: string): void => {
     console.log(message);

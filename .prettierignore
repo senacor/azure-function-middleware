@@ -4,5 +4,4 @@ package-lock.json
 *.ejs
 dist
 coverage
-dist/
 config/*

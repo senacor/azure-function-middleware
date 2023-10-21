@@ -1,8 +1,9 @@
-import { mock } from 'jest-mock-extended';
 import { Context, HttpRequest } from '@azure/functions';
+import { mock } from 'jest-mock-extended';
 import * as JWTDecoder from 'jwt-decode';
+
+import { ApplicationError } from './error';
 import sut from './jwtAuthorization';
-import { ApplicationError } from './applicationError';
 
 jest.mock('jwt-decode');
 const jwtMock = JWTDecoder as jest.Mocked<typeof JWTDecoder>;

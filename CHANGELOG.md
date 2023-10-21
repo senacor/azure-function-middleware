@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.1.0 (19.09.2023)
++ Post-Execution-Functions will now be executed, even if the handler failed
+- The middlewareWithErrorHandling was removed. To regain the same functionality you can now pass an option-flag, called disableErrorHandling
+
 ## 2.0.0 (01.04.2023)
 - Added auto-logging functionality to the library that enhances searchability of saved log statements in Azure AppInsights by storing context properties in commonProperties. 
 - Removed the MiddlewareFunction-Type in favor for the azure-built-in one 

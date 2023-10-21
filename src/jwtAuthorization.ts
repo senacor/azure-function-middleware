@@ -1,6 +1,7 @@
 import { AzureFunction, Context, ContextBindingData, HttpRequest } from '@azure/functions';
 import jwtDecode from 'jwt-decode';
-import { ApplicationError } from './applicationError';
+
+import { ApplicationError } from './error';
 
 const evaluate = <T>(rule: Rule<T>, parameters: ContextBindingData, jwt: T) => {
     const pathParameter = rule.parameterExtractor(parameters);

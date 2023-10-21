@@ -1,5 +1,6 @@
 import { Context, ContextBindingData } from '@azure/functions';
-import middleware from '../../src/middleware';
+
+import { middleware } from '../../src';
 import authorization from '../../src/jwtAuthorization';
 
 const functionHandler = async (context: Context): Promise<void> => {

@@ -1,6 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import { ApplicationError } from './applicationError';
 import { HttpRequestHeaders } from '@azure/functions/types/http';
+
+import { ApplicationError } from './error';
 
 export default (
     validateUsingHeaderFn?: (headers: HttpRequestHeaders) => boolean,
