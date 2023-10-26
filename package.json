@@ -30,7 +30,7 @@
         "@typescript-eslint/eslint-plugin": "^5.10.2",
         "@typescript-eslint/parser": "^5.10.2",
         "eslint": "^8.8.0",
-        "eslint-config-prettier": "^8.3.0",
+        "eslint-config-prettier": "^9.0.0",
         "eslint-plugin-prettier": "^4.0.0",
         "jest": "^27.4.5",
         "jest-mock-extended": "^3.0.1",
