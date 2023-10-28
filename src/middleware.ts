@@ -7,16 +7,19 @@ type ErrorResult = { $failed: true; $error: unknown };
 const isErrorResult = (result: unknown | ErrorResult): result is ErrorResult => (result as ErrorResult)?.$failed;
 
 const middlewareCore =
-    (beforeExecution: AzureFunction[], handler: AzureFunction, postExecution: AzureFunction[]) =>
+    (beforeExecution: (AzureFunction | false)[], handler: AzureFunction, postExecution: (AzureFunction | false)[]) =>
     async (context: Context, ...args: unknown[]): Promise<unknown | ErrorResult> => {
         let error = undefined;
 
         if (beforeExecution) {
-            for (const middlewareFunctions of beforeExecution) {
+            const middlewareFunctions = beforeExecution.filter(
+                (predicate): predicate is AzureFunction => predicate !== false,
+            );
+            for (const middlewareFunction of middlewareFunctions) {
                 try {
                     // TODO: Give before-execution functions a parameter to indicate if the handler failed. So each function has the ability to decide for itself, if it should get executed.
                     if (error === undefined) {
-                        await middlewareFunctions(context, ...args);
+                        await middlewareFunction(context, ...args);
                     }
                 } catch (err) {
                     error = err;
@@ -36,13 +39,16 @@ const middlewareCore =
 
         // TODO: Give post-execution functions a parameter to indicate if the handler failed. So each function has the ability to decide for itself, if it should get executed.
         if (postExecution) {
-            for (const middleware of postExecution) {
-                await middleware(context, ...args);
+            const middlewareFunctions = postExecution.filter(
+                (predicate): predicate is AzureFunction => predicate !== false,
+            );
+            for (const middlewareFunction of middlewareFunctions) {
+                await middlewareFunction(context, ...args);
             }
         }
 
         if (error !== undefined) {
-            context.log.error(`An uncaught error occurred in the execution of the hander: ${error}`);
+            context.log.error(`An uncaught error occurred in the execution of the handler: ${error}`);
             return { $failed: true, $error: error };
         }
         return handlerResult;
@@ -56,9 +62,9 @@ export type Options = {
 };
 
 async function middlewareWrapper(
-    beforeExecution: AzureFunction[],
+    beforeExecution: (AzureFunction | false)[],
     handler: (context: Context, ...args: unknown[]) => Promise<unknown> | void,
-    postExecution: AzureFunction[],
+    postExecution: (AzureFunction | false)[],
     context: Context,
     args: unknown[],
     opts?: Options,
@@ -78,7 +84,12 @@ async function middlewareWrapper(
 }
 
 export const middleware =
-    (beforeExecution: AzureFunction[], handler: AzureFunction, postExecution: AzureFunction[], opts?: Options) =>
+    (
+        beforeExecution: (AzureFunction | false)[],
+        handler: AzureFunction,
+        postExecution: (AzureFunction | false)[],
+        opts?: Options,
+    ) =>
     async (context: Context, ...args: unknown[]): Promise<unknown> => {
         if (opts?.disableErrorHandling) {
             return await middlewareWrapper(beforeExecution, handler, postExecution, context, args, opts);

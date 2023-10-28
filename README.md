@@ -69,19 +69,21 @@ If a post-execution function is necessary, it can be included in the postExecuti
 The function to validate requests is based on [Joi](https://www.npmjs.com/package/joi). The usage is fairly simply:
 
 ```typescript
-export default middleware([validation(schema)], functionHandler, []);
+export default middleware([requestValidation(schema)], functionHandler, []);
 ```
 
-The passed schema is a Joi ObjectSchema to check the passed request against. When the request is valid against the schema, the next middleware function gets called. In case the check of the request against the schema is invalid, the middleware function throws an error, canceling the request and returning aan `400 - Bad Request` with the Joi error message.
+The passed schema is a Joi ObjectSchema to check the passed request against. When the request is valid against the schema, the next middleware function gets called. In case the check of the request against the schema is invalid, the middleware function throws an error, canceling the request and returning an `400 - Bad Request` with the Joi error message.
 
 The body of the response could be customized by adding a transformer like in the following example. The passed message is the Joi error message.
 
 ```typescript
 export default middleware(handler, [
-  validation(schema, (message) => ({
-    type: 'Invalid  request object',
-    detail: message,
-  })),
+    requestValidation(schema, {
+        transformErrorMessage: (message) => ({
+            type: 'Invalid  request object',
+            detail: message,
+        })
+    }),
 ])
 ```
 
@@ -89,14 +91,28 @@ By default, the request body is getting validated. To validate other parts of th
 
 ```typescript
 export default middleware([
-    validation(schema, undefined, (req, context) => req.query.name)],
-    handler, 
+    requestValidation(schema, {extractValidationContentFromRequest: (req, context) => req.query.name})],
+    handler,
     []
 )
-
 ```
 
 In this example the `name` contained in the query is getting validated against the passed request.
+
+You can also ensure the integrity of your handler's responses by utilizing the responseValidation function. 
+However, you might prefer to avoid interruptions in the application flow caused by thrown errors, opting instead for error logging. 
+This can be achieved with the following configuration:
+
+```typescript
+export default middleware([
+    responseValidation(schema, {shouldThrowOnValidationError: false})],
+    handler,
+    []
+)
+```
+
+This approach validates the response against the provided schema but, instead of halting execution 
+when encountering validation errors, it logs the issues for review without throwing an exception.
 
 ### Authorization
 

@@ -1,15 +1,14 @@
 import { Context, HttpRequest } from '@azure/functions';
-import { mock } from 'jest-mock-extended';
-import JoiValidator from 'joi';
-import { ValidationError } from 'joi';
+import { mockDeep } from 'jest-mock-extended';
+import Joi from 'joi';
 
 import { ApplicationError } from './error';
-import sut from './validation';
+import { requestValidation, responseValidation } from './validation';
 
-jest.mock('joi');
-describe('The joi validator should', () => {
-    const contextMock = mock<Context>();
-    const requestMock = mock<HttpRequest>();
+describe('The requestValidation should', () => {
+    const exampleSchema = Joi.object({ example: Joi.string().required() });
+    const contextMock = mockDeep<Context>();
+    const requestMock = mockDeep<HttpRequest>();
 
     beforeEach(() => {
         contextMock.log.verbose = jest.fn();
@@ -18,68 +17,129 @@ describe('The joi validator should', () => {
 
     test('successfully validate the passed object', async () => {
         requestMock.method = 'POST';
-        requestMock.body = 'test-body';
-        const schemaMock = mock<JoiValidator.ObjectSchema>();
-        schemaMock.validate.mockReturnValue({ error: undefined, value: 'Test Validation' });
+        requestMock.body = { example: 'test-body' };
 
-        const result = await sut(schemaMock)(contextMock, requestMock);
+        const result = await requestValidation(exampleSchema)(contextMock, requestMock);
 
-        expect(schemaMock.validate).toBeCalledWith('test-body');
         expect(result).toBeUndefined();
     });
 
     test('successfully validate the object extracted through the passed function', async () => {
         requestMock.method = 'GET';
-        const schemaMock = mock<JoiValidator.ObjectSchema>();
-        schemaMock.validate.mockReturnValue({ error: undefined, value: 'Test Validation' });
 
-        const result = await sut(schemaMock, undefined, () => 'test-extracted-content')(contextMock, requestMock);
+        const result = await requestValidation(exampleSchema, {
+            extractValidationContentFromRequest: () => ({
+                example: 'test-extracted-content',
+            }),
+        })(contextMock, requestMock);
 
-        expect(schemaMock.validate).toBeCalledWith('test-extracted-content');
         expect(result).toBeUndefined();
     });
 
     test('fail when the validation was not successful', async () => {
         requestMock.method = 'POST';
         requestMock.body = 'test-body';
-        const schemaMock = mock<JoiValidator.ObjectSchema>();
-        const errorMock = mock<ValidationError>();
-        schemaMock.validate.mockReturnValue({ error: errorMock, value: undefined });
-        errorMock.message = 'Das ist ein Test';
 
-        try {
-            await sut(schemaMock)(contextMock, requestMock);
-        } catch (error) {
-            expect(error).toBeInstanceOf(ApplicationError);
-            expect((error as ApplicationError<unknown>).status).toEqual(400);
-            expect((error as ApplicationError<unknown>).body).toEqual({
-                message: 'Das ist ein Test',
-            });
-        }
+        await expect(requestValidation(exampleSchema)(contextMock, requestMock)).rejects.toThrowError(
+            new ApplicationError('Validation Error', 400),
+        );
+    });
 
-        expect(schemaMock.validate).toBeCalledWith('test-body');
+    test('do not throw an error, even when the validation was not successful, if throwing is disabled', async () => {
+        requestMock.method = 'POST';
+        requestMock.body = 'test-body';
+
+        requestMock.method = 'POST';
+        requestMock.body = 'test-body';
+
+        await expect(
+            requestValidation(exampleSchema, { shouldThrowOnValidationError: false })(contextMock, requestMock),
+        ).resolves.toEqual(undefined);
     });
 
     test('fail when the validation was not successful with transformed error message', async () => {
         requestMock.method = 'POST';
-        requestMock.body = 'test-body';
-        const schemaMock = mock<JoiValidator.ObjectSchema>();
-        const errorMock = mock<ValidationError>();
-        schemaMock.validate.mockReturnValue({ error: errorMock, value: undefined });
-        errorMock.message = 'Das ist ein Test';
+        requestMock.body = { fail: 'test-body' };
 
-        try {
-            await sut(schemaMock, (message) => ({
-                type: 'Validation Error',
-                message,
-            }))(contextMock, requestMock);
-        } catch (error) {
-            expect(error).toBeInstanceOf(ApplicationError);
-            expect((error as ApplicationError<unknown>).status).toEqual(400);
-            expect((error as ApplicationError<unknown>).body).toEqual({
-                message: 'Das ist ein Test',
-                type: 'Validation Error',
-            });
-        }
+        await expect(
+            requestValidation(exampleSchema, {
+                transformErrorMessage: (message) => ({
+                    type: 'Validation Error',
+                    message,
+                }),
+            })(contextMock, requestMock),
+        ).rejects.toThrowError(new ApplicationError('Validation Error', 400));
+    });
+});
+
+describe('The responseValidation should', () => {
+    const exampleSchema = Joi.object({
+        status: Joi.number().required(),
+        body: Joi.object({
+            example: Joi.string().required(),
+        }),
+    });
+    const contextMock = mockDeep<Context>();
+    const requestMock = mockDeep<HttpRequest>();
+
+    beforeEach(() => {
+        contextMock.log.verbose = jest.fn();
+        jest.restoreAllMocks();
+    });
+
+    test('do nothing, if the response is valid', async () => {
+        contextMock.res = {};
+        contextMock.res.status = 201;
+        contextMock.res.body = { example: 'test-body' };
+
+        const result = await responseValidation(exampleSchema)(contextMock, requestMock);
+
+        expect(result).toBeUndefined();
+    });
+
+    test('do nothing, if the object, extracted through the passed function, is valid', async () => {
+        contextMock.res = {};
+        contextMock.res.body = { example: 'test-body' };
+
+        const result = await responseValidation(exampleSchema, {
+            extractValidationContentFromRequest: (context) => ({ status: 201, body: context?.res?.body }),
+        })(contextMock, requestMock);
+
+        expect(result).toBeUndefined();
+    });
+
+    test('throw, if the response is invalid', async () => {
+        contextMock.res = {};
+        contextMock.res.status = 201;
+        contextMock.res.body = { fail: 'this fails' };
+
+        await expect(responseValidation(exampleSchema)(contextMock, requestMock)).rejects.toThrowError(
+            new ApplicationError('Internal server error', 500),
+        );
+    });
+
+    test('do not throw an error, even when the validation was not successful, if throwing is disabled', async () => {
+        contextMock.res = {};
+        contextMock.res.status = 201;
+        contextMock.res.body = { fail: 'this fails' };
+
+        await expect(
+            responseValidation(exampleSchema, { shouldThrowOnValidationError: false })(contextMock, requestMock),
+        ).resolves.toEqual(undefined);
+    });
+
+    test('fail when the validation was not successful with transformed error message', async () => {
+        contextMock.res = {};
+        contextMock.res.status = 201;
+        contextMock.res.body = { fail: 'this fails' };
+
+        await expect(
+            responseValidation(exampleSchema, {
+                transformErrorMessage: (message) => ({
+                    type: 'Validation Error',
+                    message,
+                }),
+            })(contextMock, requestMock),
+        ).rejects.toThrowError(new ApplicationError('Internal server error', 500));
     });
 });

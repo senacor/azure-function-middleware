@@ -3,7 +3,7 @@ import * as Joi from 'joi';
 import { ObjectSchema } from 'joi';
 
 import { middleware } from '../../src';
-import validation from '../../src/validation';
+import { requestValidation as validation } from '../../src/validation';
 
 const schema: ObjectSchema = Joi.object({
     name: Joi.string().min(3).max(30).required(),
