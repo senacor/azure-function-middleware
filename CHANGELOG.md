@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.2.1 (31.10.2023)
+~ Resolve "_a.substring is not a function" error with applicationInsights. Issue was found in applicationinsights Library's TelemetryClient.trackTrace and EnvelopeFactory.createTraceData methods. This fix targets the compatibility issue observed in version 2.5.1 or higher.
+
 ## 2.2.0 (31.10.2023)
 + Introduced responseValidation functionality in the middleware. This new feature enhances the robustness of your applications by enabling schema validation for handlers' responses.
 + Implemented the capability to dynamically enable or disable middleware functions within the execution flow. This addition brings conditional processing to your middleware stack, allowing greater control based on runtime conditions or application logic. Functions can now be seamlessly included or excluded from the execution process by resolving to true or false through a new integration pattern. This feature ensures that your application maintains high efficiency and adaptability in handling requests and processing logic.
