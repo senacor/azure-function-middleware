@@ -14,9 +14,9 @@ const functionHandler = async (context: Context, req: HttpRequest): Promise<void
     context.res = { status: 200, body: { text: `Hallo ${req.body.name}` } };
 };
 
-const afterFunction = (context: Context): Promise<void> => {
+const postFunction = (context: Context): Promise<void> => {
     context.log('Called after function');
     return;
 };
 
-export default middleware([validation(schema)], functionHandler, [afterFunction]);
+export default middleware([validation(schema)], functionHandler, [postFunction]);
