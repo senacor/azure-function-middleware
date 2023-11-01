@@ -2,60 +2,62 @@ import { Logger } from '@azure/functions';
 import { TelemetryClient } from 'applicationinsights';
 import { SeverityLevel } from 'applicationinsights/out/Declarations/Contracts';
 
-const consoleDefaultLog = (message: string): void => {
-    console.log(message);
+import { stringify } from '../util/stringify';
+
+const consoleDefaultLog = (...args: unknown[]): void => {
+    console.log(args);
 };
 
-consoleDefaultLog.error = (message: string): void => {
-    console.error(message);
+consoleDefaultLog.error = (...args: unknown[]): void => {
+    console.error(args);
 };
 
-consoleDefaultLog.warn = (message: string): void => {
-    console.warn(message);
+consoleDefaultLog.warn = (...args: unknown[]): void => {
+    console.warn(args);
 };
 
-consoleDefaultLog.info = (message: string): void => {
-    console.info(message);
+consoleDefaultLog.info = (...args: unknown[]): void => {
+    console.info(args);
 };
 
-consoleDefaultLog.verbose = (message: string): void => {
-    console.debug(message);
+consoleDefaultLog.verbose = (...args: unknown[]): void => {
+    console.debug(args);
 };
 
 export const consoleLogger: Logger = consoleDefaultLog;
 
 export const createAppInsightsLogger = (telemetryClient: TelemetryClient): Logger => {
-    const appInsightsLogger = (message: string): void => {
+    const appInsightsLogger = (...args: unknown[]): void => {
         telemetryClient.trackTrace({
-            message,
+            message: stringify(args),
             severity: SeverityLevel.Information,
         });
     };
 
-    appInsightsLogger.error = (message: string): void => {
+    appInsightsLogger.error = (...args: unknown[]): void => {
         telemetryClient.trackTrace({
-            message,
+            message: stringify(args),
             severity: SeverityLevel.Error,
         });
     };
 
-    appInsightsLogger.warn = (message: string): void => {
+    appInsightsLogger.warn = (...args: unknown[]): void => {
         telemetryClient.trackTrace({
-            message,
+            message: stringify(args),
             severity: SeverityLevel.Warning,
         });
     };
 
-    appInsightsLogger.info = (message: string): void => {
+    appInsightsLogger.info = (...args: unknown[]): void => {
         telemetryClient.trackTrace({
-            message,
+            message: stringify(args),
             severity: SeverityLevel.Information,
         });
     };
 
-    appInsightsLogger.verbose = (message: string): void => {
+    appInsightsLogger.verbose = (...args: unknown[]): void => {
         telemetryClient.trackTrace({
-            message,
+            message: stringify(args),
             severity: SeverityLevel.Verbose,
         });
     };
