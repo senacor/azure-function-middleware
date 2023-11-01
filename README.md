@@ -62,7 +62,7 @@ export default middleware([validation(schema)], functionHandler, []);
 ```
 
 Such generic functions are executed in sequence before the main handler function. 
-If a post-execution function is necessary, it can be included in the postExecution array, the third argument in the middleware function.
+If a post-execution function is necessary, it can be included in the postExecution array, the third argument in the middleware function. The post execution functions are also executed in sequence
 
 ### Validation
 
