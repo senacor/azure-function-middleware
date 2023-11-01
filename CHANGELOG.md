@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.2.0 (31.10.2023)
++ Introduced responseValidation functionality in the middleware. This new feature enhances the robustness of your applications by enabling schema validation for handlers' responses.
++ Implemented the capability to dynamically enable or disable middleware functions within the execution flow. This addition brings conditional processing to your middleware stack, allowing greater control based on runtime conditions or application logic. Functions can now be seamlessly included or excluded from the execution process by resolving to true or false through a new integration pattern. This feature ensures that your application maintains high efficiency and adaptability in handling requests and processing logic.
+
 ## 2.1.0 (19.09.2023)
 + Post-Execution-Functions will now be executed, even if the handler failed
 - The middlewareWithErrorHandling was removed. To regain the same functionality you can now pass an option-flag, called disableErrorHandling

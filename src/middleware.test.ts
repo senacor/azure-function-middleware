@@ -172,56 +172,6 @@ describe('The middleware layer should', () => {
         expect(contextMock.log.error).toBeCalled();
         // expect(middlewarePostFunction).toBeCalled(); TODO: Fix later
     });
-});
-
-describe('The middleware layer with disabled error-handling should', () => {
-    const contextMock = mock<Context>();
-    const requestMock = mock<HttpRequest>();
-
-    beforeEach(() => {
-        jest.restoreAllMocks();
-
-        contextMock.log.error = jest.fn();
-    });
-
-    test('successfully call the passed functions without any middleware passed', async () => {
-        const handlerMock = jest.fn();
-
-        await sut([], handlerMock, [], { disableErrorHandling: true })(contextMock, requestMock);
-
-        expect(handlerMock).toHaveBeenCalledWith(contextMock, requestMock);
-    });
-
-    test('successfully call the middleware and the passed functions', async () => {
-        const handlerMock = jest.fn();
-        const middlewareOneMock = jest.fn();
-        const middlewareTwoMock = jest.fn();
-
-        await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [], { disableErrorHandling: true })(
-            contextMock,
-            requestMock,
-        );
-
-        expect(middlewareOneMock).toHaveBeenCalledWith(contextMock, requestMock);
-        expect(middlewareTwoMock).toHaveBeenCalledWith(contextMock, requestMock);
-        expect(handlerMock).toHaveBeenCalledWith(contextMock, requestMock);
-    });
-
-    test('successfully call the pre middleware and post middleware and the passed functions', async () => {
-        const handlerMock = jest.fn();
-        const middlewareOneMock = jest.fn();
-        const middlewareTwoMock = jest.fn();
-        const middlewarePostMock = jest.fn();
-
-        await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [middlewarePostMock], {
-            disableErrorHandling: true,
-        })(contextMock, requestMock);
-
-        expect(middlewareOneMock).toHaveBeenCalledWith(contextMock, requestMock);
-        expect(middlewareTwoMock).toHaveBeenCalledWith(contextMock, requestMock);
-        expect(middlewarePostMock).toHaveBeenCalledWith(contextMock, requestMock);
-        expect(handlerMock).toHaveBeenCalledWith(contextMock, requestMock);
-    });
 
     test('fail when the first middleware (beforeExecution) is failing', async () => {
         const handlerMock = jest.fn();
@@ -295,6 +245,27 @@ describe('The middleware layer with disabled error-handling should', () => {
 
         expect(middlewareOneMock).toHaveBeenCalledWith(contextMock, requestMock);
         expect(middlewareTwoMock).toHaveBeenCalledWith(contextMock, requestMock);
+        expect(handlerMock).toHaveBeenCalledWith(contextMock, requestMock);
+    });
+
+    test('dynamically filter items, which resolve to false', async () => {
+        const handlerMock = jest.fn();
+        const middlewareOneMock = jest.fn();
+        const middlewareTwoMock = jest.fn();
+        const middlewarePostOneMock = jest.fn();
+        const middlewarePostTwoMock = jest.fn();
+        const excludeFunction = () => false;
+        const includeFunction = () => true;
+
+        await sut([excludeFunction() && middlewareOneMock, middlewareTwoMock], handlerMock, [
+            includeFunction() && middlewarePostOneMock,
+            excludeFunction() && middlewarePostTwoMock,
+        ])(contextMock, requestMock);
+
+        expect(middlewareOneMock).not.toHaveBeenCalledWith(contextMock, requestMock);
+        expect(middlewareTwoMock).toHaveBeenCalledWith(contextMock, requestMock);
+        expect(middlewarePostOneMock).toHaveBeenCalledWith(contextMock, requestMock);
+        expect(middlewarePostTwoMock).not.toHaveBeenCalledWith(contextMock, requestMock);
         expect(handlerMock).toHaveBeenCalledWith(contextMock, requestMock);
     });
 });
