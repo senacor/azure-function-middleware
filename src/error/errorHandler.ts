@@ -30,6 +30,6 @@ export const errorHandler = (
             },
         };
     } else {
-        return opts.errorResponseHandler(error);
+        return opts.errorResponseHandler(error, context);
     }
 };

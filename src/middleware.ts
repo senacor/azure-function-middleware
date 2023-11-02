@@ -55,7 +55,10 @@ const middlewareCore =
     };
 
 export type Options = {
-    errorResponseHandler?: (error: unknown) => {
+    errorResponseHandler?: (
+        error: unknown,
+        context: Context,
+    ) => {
         [key: string]: unknown;
     };
     disableErrorHandling?: boolean;

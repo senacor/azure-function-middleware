@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.2.2 (03.11.2023) 
++ Added the `context` as a parameter for the `errorResponseHandler` function to enhance error handling capabilities.
+
 ## 2.2.1 (31.10.2023)
 ~ Resolve "_a.substring is not a function" error with applicationInsights. Issue was found in applicationinsights Library's TelemetryClient.trackTrace and EnvelopeFactory.createTraceData methods. This fix targets the compatibility issue observed in version 2.5.1 or higher.
 
