@@ -4,6 +4,10 @@ import { TelemetryClient } from 'applicationinsights';
 
 import { consoleLogger, createAppInsightsLogger } from './Logger';
 
+type LogBehavior = 'always' | 'on_error' | 'on_success' | 'never';
+type LogDataSanitizer = (data: unknown) => unknown;
+const noOpLogDataSanitizer: LogDataSanitizer = (data) => data;
+
 const telemetryClients: { [key: string]: TelemetryClient } = {};
 
 const isDisabled =
@@ -36,12 +40,7 @@ if (!isDisabled) {
     console.log('Started appInsights');
 }
 
-const setupAppInsight = async (context: Context): Promise<void> => {
-    if (isDisabled) {
-        context.log = consoleLogger;
-        return;
-    }
-
+const setupTelemetryClient = (context: Context, additionalProperties: object) => {
     context.log('Setting up AppInsights');
 
     const telemetryClient = new TelemetryClient();
@@ -49,18 +48,55 @@ const setupAppInsight = async (context: Context): Promise<void> => {
     telemetryClients[context.invocationId] = telemetryClient;
     context.log = createAppInsightsLogger(telemetryClient);
 
-    // excluding headers because it contains sensible data
-    const { headers, ...includedProperties } = context.bindingData;
+    const { invocationId, sys } = context.bindingData;
 
     telemetryClient.commonProperties = {
-        ...includedProperties,
+        invocationId,
+        sys,
+        ...additionalProperties,
         ...appInsights.defaultClient.commonProperties,
     };
 
     context.log('Set up AppInsights');
 };
 
-const finalizeAppInsightForHttpTrigger = async (context: Context, req: HttpRequest): Promise<void> => {
+const setupAppInsightForHttpTrigger = async (context: Context): Promise<void> => {
+    if (isDisabled) {
+        context.log = consoleLogger;
+        return;
+    }
+
+    setupTelemetryClient(context, { params: context.req?.params });
+};
+
+const setupAppInsightForNonHttpTrigger = async (context: Context): Promise<void> => {
+    if (isDisabled) {
+        context.log = consoleLogger;
+        return;
+    }
+
+    setupTelemetryClient(context, { workflowData: context.bindingData.workflowData });
+};
+
+const shouldLog = (logBehavior: LogBehavior, isError: boolean) => {
+    switch (logBehavior) {
+        case 'always':
+            return true;
+        case 'on_error':
+            return isError;
+        case 'on_success':
+            return !isError;
+        case 'never':
+            return false;
+    }
+};
+
+const finalizeAppInsightForHttpTrigger = async (
+    context: Context,
+    req: HttpRequest,
+    logBodyBehavior: LogBehavior = 'on_error',
+    bodySanitizer: LogDataSanitizer = noOpLogDataSanitizer,
+): Promise<void> => {
     if (isDisabled) {
         return;
     }
@@ -84,10 +120,9 @@ const finalizeAppInsightForHttpTrigger = async (context: Context, req: HttpReque
         context.log.warn("context.res is empty and properly shouldn't be");
     }
 
-    const properties: { [key: string]: unknown } = {};
-
-    if (context?.res?.status >= 400) {
-        properties.body = context.req?.body ?? 'NO_REQ_BODY';
+    if (shouldLog(logBodyBehavior, context?.res?.status >= 400)) {
+        context.log('Request body:', context.req?.body ? bodySanitizer(context.req?.body) : 'NO_REQ_BODY');
+        context.log('Response body:', context.res?.body ? bodySanitizer(context.res?.body) : 'NO_RES_BODY');
     }
 
     telemetryClient.trackRequest({
@@ -98,7 +133,6 @@ const finalizeAppInsightForHttpTrigger = async (context: Context, req: HttpReque
         url: req.url,
         duration: 0,
         id: correlationContext?.operation?.id ?? 'UNDEFINED',
-        properties,
     });
 
     telemetryClient.flush();
@@ -123,8 +157,6 @@ const finalizeAppInsightForNonHttpTrigger = async (context: Context): Promise<vo
         ...telemetryClient.commonProperties,
     };
 
-    const properties: { [key: string]: unknown } = {};
-
     telemetryClient.trackRequest({
         name: context.executionContext.functionName,
         resultCode: 0,
@@ -133,7 +165,6 @@ const finalizeAppInsightForNonHttpTrigger = async (context: Context): Promise<vo
         url: '',
         duration: 0,
         id: correlationContext?.operation?.id ?? 'UNDEFINED',
-        properties,
     });
 
     telemetryClient.flush();
@@ -141,13 +172,16 @@ const finalizeAppInsightForNonHttpTrigger = async (context: Context): Promise<vo
 };
 
 const AppInsightForHttpTrigger = {
-    setup: setupAppInsight,
+    setup: setupAppInsightForHttpTrigger,
     finalizeAppInsight: finalizeAppInsightForHttpTrigger,
+    finalizeWithConfig:
+        (logBodyBehavior: LogBehavior, bodySanitizer: LogDataSanitizer) => (context: Context, req: HttpRequest) =>
+            finalizeAppInsightForHttpTrigger(context, req, logBodyBehavior, bodySanitizer),
 };
 
 const AppInsightForNoNHttpTrigger = {
-    setup: setupAppInsight,
+    setup: setupAppInsightForNonHttpTrigger,
     finalizeAppInsight: finalizeAppInsightForNonHttpTrigger,
 };
 
-export { AppInsightForHttpTrigger, AppInsightForNoNHttpTrigger };
+export { AppInsightForHttpTrigger, AppInsightForNoNHttpTrigger, LogBehavior, LogDataSanitizer };

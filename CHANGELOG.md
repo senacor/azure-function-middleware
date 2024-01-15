@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.3.0 (15.01.2024)
+- Do not add the full content of `context.bindingData` to `customDimensions` for app insights logging anymore as it contains i.e. the request body.
++ Add `AppInsightForHttpTrigger.finalizeWithConfig` which allows you to configure when the request and response body should be logged and allows you to use a body sanitizer to remove sensitive data.
+
 ## 2.2.2 (03.11.2023) 
 + Added the `context` as a parameter for the `errorResponseHandler` function to enhance error handling capabilities.
 
