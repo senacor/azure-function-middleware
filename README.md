@@ -160,8 +160,8 @@ export default middleware(functionHandler, [], [postFunction]);
 
 ### Logging and Tracing with appInsights
 
-To enhance the logging and tracing with appInsights you can wrap your function with the appInsightWrapper. Currently, this will log the query-parameter
-and binding-context of request into the customProperties, which will make your logs more searchable.
+To enhance the logging and tracing with appInsights you can wrap your function with the appInsightWrapper. 
+Currently, this will add request parameters and workflow data into the customProperties, which will make your logs more searchable.
 
 Use the `AppInsightForHttpTrigger` for your http-functions:
 ```typescript
@@ -171,6 +171,10 @@ export default middleware([AppInsightForHttpTrigger.setup], handler, [AppInsight
 ```
 
 and the `AppInsightForNonHttpTrigger` for functions with different kinds of trigger (e.g. `activityTrigger` or `timerTrigger`).
+
+Per default the request and response bodies of http requests are only logged if the request fails. You can customize this 
+behavior by using `AppInsightForHttpTrigger.finalizeWithConfig(...)` instead of `AppInsightForHttpTrigger.finalizeAppInsight`.
+There you can also provide a function to sanitize the request and response bodies to prevent logging of sensitive data.
 
 ## Support and Contact
 
