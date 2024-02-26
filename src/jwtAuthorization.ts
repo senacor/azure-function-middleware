@@ -1,5 +1,5 @@
 import { AzureFunction, Context, ContextBindingData, HttpRequest } from '@azure/functions';
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 import { ApplicationError } from './error';
 

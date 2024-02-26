@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.3.1 (26.02.2024)
+~ Bump the version of jwt-decode
+
 ## 2.3.0 (15.01.2024)
 - Do not add the full content of `context.bindingData` to `customDimensions` for app insights logging anymore as it contains i.e. the request body.
 + Add `AppInsightForHttpTrigger.finalizeWithConfig` which allows you to configure when the request and response body should be logged and allows you to use a body sanitizer to remove sensitive data.

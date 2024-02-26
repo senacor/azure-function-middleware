@@ -18,7 +18,7 @@ describe('The authorization middleware should', () => {
 
     test('successfully validate the passed authorization token', async () => {
         requestMock.headers.authorization = 'Bearer token';
-        jwtMock.default.mockReturnValue('JWT-TEST');
+        jwtMock.jwtDecode.mockReturnValue('JWT-TEST');
 
         await sut([
             {
@@ -45,7 +45,7 @@ describe('The authorization middleware should', () => {
             ),
         ).rejects.toEqual(new ApplicationError('Authorization error', 401));
 
-        expect(jwtMock.default).not.toBeCalled();
+        expect(jwtMock.jwtDecode).not.toBeCalled();
     });
 
     test('fail caused by a incorrectly formatted authorization header', async () => {
@@ -60,12 +60,12 @@ describe('The authorization middleware should', () => {
             ),
         ).rejects.toEqual(new ApplicationError('Authorization error', 401));
 
-        expect(jwtMock.default).not.toBeCalled();
+        expect(jwtMock.jwtDecode).not.toBeCalled();
     });
 
     test('fail caused by second rule failing and therefore chaining failed', async () => {
         requestMock.headers.authorization = 'Bearer token';
-        jwtMock.default.mockReturnValue('JWT-TEST');
+        jwtMock.jwtDecode.mockReturnValue('JWT-TEST');
 
         await expect(
             sut([
