@@ -35,7 +35,7 @@ jobs:
         run: |
           echo "Version changed: ${{ steps.publish.outputs.old-version }} => ${{ steps.publish.outputs.version }}"
       - name: Github release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: steps.publish.outputs.type != 'none'
         with:
           name: Release v${{ steps.publish.outputs.version }}
