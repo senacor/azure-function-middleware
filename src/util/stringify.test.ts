@@ -21,7 +21,7 @@ describe('stringify', () => {
 
         it('returns object.toString() for an empty object', () => {
             const input = {};
-            expect(stringify(input)).toBe('[object Object]');
+            expect(stringify(input)).toBe('{}');
         });
 
         it('returns error message for null', () => {

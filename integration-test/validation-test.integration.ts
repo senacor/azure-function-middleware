@@ -38,6 +38,6 @@ describe('The example azure function is started and the JOI validation should', 
         expect(responseEmptyBody.data).toEqual({ message: '"name" is required' });
 
         expect(responseUndefinedBody.status).toEqual(400);
-        expect(responseUndefinedBody.data).toEqual({ message: '"value" is required' });
+        expect(responseUndefinedBody.data).toEqual({ message: 'Unexpected end of JSON input' });
     });
 });
