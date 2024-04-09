@@ -1,15 +1,17 @@
-import { Context, HttpRequest } from '@azure/functions';
-import { mock } from 'jest-mock-extended';
+import { HttpHandler, HttpRequest, InvocationContext } from '@azure/functions';
+import { mock, mockDeep } from 'jest-mock-extended';
 import * as JWTDecoder from 'jwt-decode';
 
 import { ApplicationError } from './error';
 import sut from './jwtAuthorization';
+import { MiddlewareResult } from './middleware';
 
 jest.mock('jwt-decode');
 const jwtMock = JWTDecoder as jest.Mocked<typeof JWTDecoder>;
 describe('The authorization middleware should', () => {
-    const contextMock = mock<Context>();
-    const requestMock = mock<HttpRequest>();
+    const contextMock = mock<InvocationContext>();
+    const requestMock = mockDeep<HttpRequest>();
+    const initialMiddlewareResult: MiddlewareResult<ReturnType<HttpHandler>> = { $failed: false, $result: undefined };
 
     beforeEach(() => {
         jest.restoreAllMocks();
@@ -17,7 +19,7 @@ describe('The authorization middleware should', () => {
     });
 
     test('successfully validate the passed authorization token', async () => {
-        requestMock.headers.authorization = 'Bearer token';
+        requestMock.headers.get.mockImplementationOnce((name) => (name === 'authorization' ? 'Bearer token' : null));
         jwtMock.jwtDecode.mockReturnValue('JWT-TEST');
 
         await sut([
@@ -28,20 +30,21 @@ describe('The authorization middleware should', () => {
                 },
                 parameterExtractor: () => 'test',
             },
-        ])(contextMock, requestMock);
+        ])(requestMock, contextMock, initialMiddlewareResult);
 
-        expect(contextMock.bindingData).toHaveProperty('jwt', 'JWT-TEST');
+        expect(contextMock.extraInputs).toHaveProperty('jwt', 'JWT-TEST');
     });
 
     test('fail caused by missing authorization header', async () => {
-        requestMock.headers.authorization = '';
+        requestMock.headers.get.mockReturnValue(null);
         const jwtExtractorMock = jest.fn();
         const parameterExtractorMock = jest.fn();
 
         await expect(
             sut([{ jwtExtractor: jwtExtractorMock, parameterExtractor: parameterExtractorMock }])(
-                contextMock,
                 requestMock,
+                contextMock,
+                initialMiddlewareResult,
             ),
         ).rejects.toEqual(new ApplicationError('Authorization error', 401));
 
@@ -49,14 +52,16 @@ describe('The authorization middleware should', () => {
     });
 
     test('fail caused by a incorrectly formatted authorization header', async () => {
-        requestMock.headers.authorization = 'Bearer';
+        requestMock.headers.get.mockImplementationOnce((name) => (name === 'authorization' ? 'Bearer' : null));
+
         const jwtExtractorMock = jest.fn();
         const parameterExtractorMock = jest.fn();
 
         await expect(
             sut([{ jwtExtractor: jwtExtractorMock, parameterExtractor: parameterExtractorMock }])(
-                contextMock,
                 requestMock,
+                contextMock,
+                initialMiddlewareResult,
             ),
         ).rejects.toEqual(new ApplicationError('Authorization error', 401));
 
@@ -64,7 +69,7 @@ describe('The authorization middleware should', () => {
     });
 
     test('fail caused by second rule failing and therefore chaining failed', async () => {
-        requestMock.headers.authorization = 'Bearer token';
+        requestMock.headers.get.mockImplementationOnce((name) => (name === 'authorization' ? 'Bearer' : null));
         jwtMock.jwtDecode.mockReturnValue('JWT-TEST');
 
         await expect(
@@ -77,7 +82,7 @@ describe('The authorization middleware should', () => {
                     jwtExtractor: () => 'failed',
                     parameterExtractor: () => 'test',
                 },
-            ])(contextMock, requestMock),
+            ])(requestMock, contextMock, initialMiddlewareResult),
         ).rejects.toEqual(new ApplicationError('Authorization error', 401, 'Unauthorized'));
     });
 });

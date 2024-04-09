@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es2015",
-    "declaration": true,
-    "outDir": "./dist"
-  },
+    "target": "es6",
+    "outDir": "dist",
+    "sourceMap": true,
+    "strict": false
+  }
 }

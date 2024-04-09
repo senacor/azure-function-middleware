@@ -1,39 +1,45 @@
-import { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import { HttpRequestHeaders } from '@azure/functions/types/http';
+import { HttpHandler } from '@azure/functions';
+import { Headers } from 'undici';
 
 import { ApplicationError } from './error';
+import { BeforeExecutionFunction } from './middleware';
 
-export default (
-    validateUsingHeaderFn?: (headers: HttpRequestHeaders) => boolean,
-    errorResponseBody?: unknown,
-): AzureFunction => {
-    return (context: Context, req: HttpRequest): Promise<void> => {
-        if (validateUsingHeaderFn) {
-            const validationResult = validateUsingHeaderFn(req.headers);
-            if (validationResult) {
-                return Promise.resolve();
-            } else {
-                return Promise.reject(
-                    new ApplicationError(
-                        'Authentication error',
-                        403,
-                        errorResponseBody ?? 'No sophisticated credentials provided',
-                    ),
-                );
-            }
+type ValidationFunction = (headers: Headers) => boolean;
+
+const defaultHeaderValidation: ValidationFunction = (headers) => !!headers.get('x-ms-client-principal-id');
+const defaultErrorResponseBody = 'No sophisticated credentials provided';
+
+export type HeaderAuthenticationOptions = {
+    validateUsingHeaderFn: ValidationFunction;
+    errorResponseBody: unknown;
+    skipIfResultIsFaulty: boolean;
+};
+
+export default (opts?: Partial<HeaderAuthenticationOptions>): BeforeExecutionFunction<HttpHandler> => {
+    const validateUsingHeaderFn = opts?.validateUsingHeaderFn ?? defaultHeaderValidation;
+    const errorResponseBody = opts?.errorResponseBody ?? defaultErrorResponseBody;
+    const skipIfResultIsFaulty = opts?.skipIfResultIsFaulty ?? true;
+
+    return (req, context, result): Promise<void> => {
+        if (skipIfResultIsFaulty && result.$failed) {
+            context.info('Skipping header-authentication because the result is faulty.');
+            return Promise.resolve();
+        }
+
+        context.info('Executing header authentication.');
+        const validationResult = validateUsingHeaderFn(req.headers);
+        if (validationResult) {
+            context.info('Header authentication was successful.');
+            return Promise.resolve();
         } else {
-            const authenticationHeader = req.headers['x-ms-client-principal-id'];
-            if (!!authenticationHeader) {
-                return Promise.resolve();
-            } else {
-                return Promise.reject(
-                    new ApplicationError(
-                        'Authentication error',
-                        403,
-                        errorResponseBody ?? 'No sophisticated credentials provided',
-                    ),
-                );
-            }
+            context.info('Header authentication was NOT successful.');
+            return Promise.reject(
+                new ApplicationError(
+                    'Authentication error',
+                    403,
+                    errorResponseBody ?? 'No sophisticated credentials provided',
+                ),
+            );
         }
     };
 };

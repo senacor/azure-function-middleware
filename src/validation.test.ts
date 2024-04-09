@@ -1,65 +1,58 @@
-import { Context, HttpRequest } from '@azure/functions';
+import { HttpHandler, HttpRequest, InvocationContext } from '@azure/functions';
 import { mockDeep } from 'jest-mock-extended';
 import Joi from 'joi';
 
 import { ApplicationError } from './error';
+import { MiddlewareResult } from './middleware';
 import { requestValidation, responseValidation } from './validation';
 
 describe('The requestValidation should', () => {
     const exampleSchema = Joi.object({ example: Joi.string().required() });
-    const contextMock = mockDeep<Context>();
+    const contextMock = mockDeep<InvocationContext>();
     const requestMock = mockDeep<HttpRequest>();
-
-    beforeEach(() => {
-        contextMock.log.verbose = jest.fn();
-        jest.restoreAllMocks();
-    });
+    const initialMiddlewareResult: MiddlewareResult<ReturnType<HttpHandler>> = { $failed: false, $result: undefined };
 
     test('successfully validate the passed object', async () => {
-        requestMock.method = 'POST';
-        requestMock.body = { example: 'test-body' };
+        requestMock.clone.mockReturnValue(requestMock);
+        requestMock.json.mockResolvedValue({ example: 'test-body' });
 
-        const result = await requestValidation(exampleSchema)(contextMock, requestMock);
+        const result = await requestValidation(exampleSchema)(requestMock, contextMock, initialMiddlewareResult);
 
         expect(result).toBeUndefined();
     });
 
     test('successfully validate the object extracted through the passed function', async () => {
-        requestMock.method = 'GET';
-
         const result = await requestValidation(exampleSchema, {
             extractValidationContentFromRequest: () => ({
                 example: 'test-extracted-content',
             }),
-        })(contextMock, requestMock);
+        })(requestMock, contextMock, initialMiddlewareResult);
 
         expect(result).toBeUndefined();
     });
 
     test('fail when the validation was not successful', async () => {
-        requestMock.method = 'POST';
-        requestMock.body = 'test-body';
+        requestMock.json.mockResolvedValue('test-body');
 
-        await expect(requestValidation(exampleSchema)(contextMock, requestMock)).rejects.toThrowError(
-            new ApplicationError('Validation Error', 400),
-        );
+        await expect(
+            requestValidation(exampleSchema)(requestMock, contextMock, initialMiddlewareResult),
+        ).rejects.toThrowError(new ApplicationError('Validation Error', 400));
     });
 
     test('do not throw an error, even when the validation was not successful, if throwing is disabled', async () => {
-        requestMock.method = 'POST';
-        requestMock.body = 'test-body';
-
-        requestMock.method = 'POST';
-        requestMock.body = 'test-body';
+        requestMock.json.mockResolvedValue({ example: 'test-body' });
 
         await expect(
-            requestValidation(exampleSchema, { shouldThrowOnValidationError: false })(contextMock, requestMock),
+            requestValidation(exampleSchema, { shouldThrowOnValidationError: false })(
+                requestMock,
+                contextMock,
+                initialMiddlewareResult,
+            ),
         ).resolves.toEqual(undefined);
     });
 
     test('fail when the validation was not successful with transformed error message', async () => {
-        requestMock.method = 'POST';
-        requestMock.body = { fail: 'test-body' };
+        requestMock.json.mockResolvedValue({ example: { fail: 'test-body' } });
 
         await expect(
             requestValidation(exampleSchema, {
@@ -67,79 +60,79 @@ describe('The requestValidation should', () => {
                     type: 'Validation Error',
                     message,
                 }),
-            })(contextMock, requestMock),
+            })(requestMock, contextMock, initialMiddlewareResult),
         ).rejects.toThrowError(new ApplicationError('Validation Error', 400));
     });
 });
 
 describe('The responseValidation should', () => {
+    const initialMiddlewareResult: MiddlewareResult<ReturnType<HttpHandler>> = { $failed: false, $result: undefined };
+
     const exampleSchema = Joi.object({
         status: Joi.number().required(),
-        body: Joi.object({
+        jsonBody: Joi.object({
             example: Joi.string().required(),
         }),
     });
-    const contextMock = mockDeep<Context>();
+    const contextMock = mockDeep<InvocationContext>();
     const requestMock = mockDeep<HttpRequest>();
 
     beforeEach(() => {
-        contextMock.log.verbose = jest.fn();
         jest.restoreAllMocks();
     });
 
     test('do nothing, if the response is valid', async () => {
-        contextMock.res = {};
-        contextMock.res.status = 201;
-        contextMock.res.body = { example: 'test-body' };
+        initialMiddlewareResult.$result = { status: 201, jsonBody: { example: 'test-body' } };
 
-        const result = await responseValidation(exampleSchema)(contextMock, requestMock);
+        const result = await responseValidation(exampleSchema)(requestMock, contextMock, initialMiddlewareResult);
 
         expect(result).toBeUndefined();
     });
 
     test('do nothing, if the object, extracted through the passed function, is valid', async () => {
-        contextMock.res = {};
-        contextMock.res.body = { example: 'test-body' };
+        initialMiddlewareResult.$result = { jsonBody: { example: 'test-body' } };
+        const extractValidationContentFromRequest = () => ({
+            status: 201,
+            jsonBody: { example: 'not-test-body' },
+        });
 
         const result = await responseValidation(exampleSchema, {
-            extractValidationContentFromRequest: (context) => ({ status: 201, body: context?.res?.body }),
-        })(contextMock, requestMock);
+            extractValidationContentFromRequest,
+        })(requestMock, contextMock, initialMiddlewareResult);
 
         expect(result).toBeUndefined();
     });
 
     test('throw, if the response is invalid', async () => {
-        contextMock.res = {};
-        contextMock.res.status = 201;
-        contextMock.res.body = { fail: 'this fails' };
+        initialMiddlewareResult.$result = { status: 201, jsonBody: { fail: 'this-fails' } };
 
-        await expect(responseValidation(exampleSchema)(contextMock, requestMock)).rejects.toThrowError(
-            new ApplicationError('Internal server error', 500),
-        );
+        await expect(
+            responseValidation(exampleSchema)(requestMock, contextMock, initialMiddlewareResult),
+        ).rejects.toThrowError(new ApplicationError('Internal server error', 500));
     });
 
     test('do not throw an error, even when the validation was not successful, if throwing is disabled', async () => {
-        contextMock.res = {};
-        contextMock.res.status = 201;
-        contextMock.res.body = { fail: 'this fails' };
+        initialMiddlewareResult.$result = { status: 201, jsonBody: { fail: 'this-fails' } };
 
         await expect(
-            responseValidation(exampleSchema, { shouldThrowOnValidationError: false })(contextMock, requestMock),
+            responseValidation(exampleSchema, { shouldThrowOnValidationError: false })(
+                requestMock,
+                contextMock,
+                initialMiddlewareResult,
+            ),
         ).resolves.toEqual(undefined);
     });
 
     test('fail when the validation was not successful with transformed error message', async () => {
-        contextMock.res = {};
-        contextMock.res.status = 201;
-        contextMock.res.body = { fail: 'this fails' };
+        initialMiddlewareResult.$result = { status: 201, jsonBody: { fail: 'this-fails' } };
 
         await expect(
             responseValidation(exampleSchema, {
-                transformErrorMessage: (message) => ({
+                transformErrorMessage: (message: string) => ({
                     type: 'Validation Error',
                     message,
                 }),
-            })(contextMock, requestMock),
+            })(requestMock, contextMock, initialMiddlewareResult),
         ).rejects.toThrowError(new ApplicationError('Internal server error', 500));
     });
 });
