@@ -8,9 +8,8 @@ export const errorHandler = (
     error: unknown,
     context: InvocationContext,
     opts?: Options,
-): {
-    [key: string]: unknown;
-} => {
+    // TODO: Can we remove any?
+): any => {
     if (error instanceof ApplicationError) {
         context.error(`Received application error with message ${error.message}`);
 

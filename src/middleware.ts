@@ -1,4 +1,4 @@
-import { FunctionHandler, HttpRequest, InvocationContext } from '@azure/functions';
+import { FunctionHandler, InvocationContext } from '@azure/functions';
 
 import { errorHandler } from './error';
 import { stringify } from './util/stringify';
@@ -21,7 +21,7 @@ const middlewareCore =
         handler: T,
         postExecution: (PostExecutionFunction<T> | false)[],
     ) =>
-    async (request: HttpRequest, context: InvocationContext): Promise<ReturnType<T> | Error> => {
+    async (request: Parameters<T>, context: InvocationContext): Promise<ReturnType<T> | Error> => {
         let handlerResult: MiddlewareResult<ReturnType<T>> = { $failed: false, $result: undefined };
 
         if (beforeExecution) {
@@ -84,7 +84,7 @@ async function middlewareWrapper<T extends FunctionHandler>(
     beforeExecution: (BeforeExecutionFunction<T> | false)[],
     handler: T,
     postExecution: (PostExecutionFunction<T> | false)[],
-    request: any,
+    request: Parameters<T>,
     context: InvocationContext,
     opts?: Options,
 ) {
@@ -108,7 +108,9 @@ export const middleware =
         postExecution: (PostExecutionFunction<T> | false)[],
         opts?: Options,
     ) =>
-    async (request: HttpRequest, context: InvocationContext): Promise<unknown> => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore - Sorry :( But FunctionResult<T = unknown> = T | Promise<T>; so it should be fine
+    async (request: Parameters<T>[0], context: InvocationContext): ReturnType<T> => {
         if (opts?.disableErrorHandling) {
             return await middlewareWrapper(beforeExecution, handler, postExecution, request, context, opts);
         }

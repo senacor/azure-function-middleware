@@ -4,7 +4,7 @@ import { TelemetryClient } from 'applicationinsights';
 import { ActivityHandler } from 'durable-functions';
 
 import { BeforeExecutionFunction, PostExecutionFunction, isErrorResult } from '../middleware';
-import { createAppInsightsLogger } from './Logger';
+import { consoleLogger, createAppInsightsLogger } from './Logger';
 
 const telemetryClients: { [key: string]: TelemetryClient } = {};
 
@@ -51,7 +51,7 @@ const setupTelemetryClient = (
     const telemetryClient = new TelemetryClient();
     telemetryClient.setAutoPopulateAzureProperties(true);
     telemetryClients[context.invocationId] = telemetryClient;
-    context = { ...context, ...createAppInsightsLogger(telemetryClient) };
+    Object.assign(context, { ...createAppInsightsLogger(telemetryClient) });
 
     const { invocationId, triggerMetadata } = context;
 
@@ -66,10 +66,18 @@ const setupTelemetryClient = (
 };
 
 const setupAppInsightForHttpTrigger: BeforeExecutionFunction<HttpHandler> = async (req, context) => {
+    if (isDisabled) {
+        Object.assign(context, { ...consoleLogger });
+        return;
+    }
     setupTelemetryClient(req, context);
 };
 
 const setupAppInsightForNonHttpTrigger: BeforeExecutionFunction = async (req, context) => {
+    if (isDisabled) {
+        Object.assign(context, { ...consoleLogger });
+        return;
+    }
     setupTelemetryClient(req, context);
 };
 
@@ -109,10 +117,12 @@ const finalizeAppInsightForHttpTriggerWithConfig: FinalizeAppInsightWithConfig<H
     logBodyBehavior,
     bodySanitizer,
 ): Promise<void> => {
+    if (isDisabled) {
+        return;
+    }
     context.log('Finalizing AppInsights');
 
     const telemetryClient = telemetryClients[context.invocationId];
-
     if (telemetryClient === undefined) {
         context.error(`No telemetry client could be found for invocationId ${context.invocationId}`);
         return;
@@ -171,8 +181,9 @@ const finalizeAppInsightForNonHttpTriggerWithConfig: FinalizeAppInsightWithConfi
     if (isDisabled) {
         return;
     }
-    const telemetryClient = telemetryClients[context.invocationId];
 
+    context.log('Finalizing AppInsights');
+    const telemetryClient = telemetryClients[context.invocationId];
     if (telemetryClient === undefined) {
         context.error(`No telemetry client could be found for invocationId ${context.invocationId}`);
         return;

@@ -1,4 +1,4 @@
-import { FunctionHandler, FunctionResult, HttpHandler, HttpRequest, InvocationContext } from '@azure/functions';
+import { HttpHandler, HttpRequest, InvocationContext } from '@azure/functions';
 import { AnySchema } from 'joi';
 
 import { ApplicationError } from './error';
