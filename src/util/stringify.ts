@@ -25,12 +25,7 @@ const stringifyObject = (error: object | null): string => {
         return JSON.stringify({ message: error.message, stack: error.stack });
     } else {
         try {
-            const errorAsJson = JSON.stringify(error);
-            if (errorAsJson === '{}') {
-                return error.toString();
-            } else {
-                return errorAsJson;
-            }
+            return JSON.stringify(error);
         } catch (_) {
             //Fallback in case there's an error stringify
             return error.toString();

@@ -10,32 +10,32 @@ export const errorHandler = (
     opts?: Options,
     // TODO: Can we remove any?
 ): any => {
-    if (error instanceof ApplicationError) {
-        context.error(`Received application error with message ${error.message}`);
-
-        if (typeof error.body === 'object') {
-            return {
-                status: error.status,
-                jsonBody: error.body,
-            };
-        } else {
-            return {
-                status: error.status,
-                body: stringify(error.body),
-            };
-        }
-    }
-
     const errorAsString = stringify(error);
     context.error(errorAsString);
 
     if (opts?.errorResponseHandler === undefined) {
-        return {
-            status: 500,
-            jsonBody: {
-                message: 'Internal server error',
-            },
-        };
+        if (error instanceof ApplicationError) {
+            context.error(`Received application error with message ${error.message}`);
+
+            if (typeof error.body === 'object') {
+                return {
+                    status: error.status,
+                    jsonBody: error.body,
+                };
+            } else {
+                return {
+                    status: error.status,
+                    body: stringify(error.body),
+                };
+            }
+        } else {
+            return {
+                status: 500,
+                jsonBody: {
+                    message: 'Internal server error',
+                },
+            };
+        }
     } else {
         return opts.errorResponseHandler(error, context);
     }
