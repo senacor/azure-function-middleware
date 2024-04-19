@@ -59,7 +59,7 @@ const middlewareCore =
         }
 
         if (isErrorResult(handlerResult)) {
-            context.error(`An uncaught error occurred in the execution of the handler: ${stringify(handlerResult)}`);
+            context.error(`An caught error occurred in the execution of the handler: ${stringify(handlerResult)}`);
             return handlerResult.$error;
         }
 
@@ -118,6 +118,7 @@ export const middleware =
         try {
             return await middlewareWrapper(beforeExecution, handler, postExecution, request, context, opts);
         } catch (error) {
+            context.error(`An caught error occurred in the execution of the middleware: ${stringify(error)}`);
             return errorHandler(error, context, opts);
         }
     };

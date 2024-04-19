@@ -4,7 +4,7 @@ import { TelemetryClient } from 'applicationinsights';
 import { ActivityHandler } from 'durable-functions';
 
 import { BeforeExecutionFunction, PostExecutionFunction, isErrorResult } from '../middleware';
-import { consoleLogger, createAppInsightsLogger } from './Logger';
+import { createAppInsightsLogger } from './Logger';
 
 const telemetryClients: { [key: string]: TelemetryClient } = {};
 
@@ -67,7 +67,6 @@ const setupTelemetryClient = (
 
 const setupAppInsightForHttpTrigger: BeforeExecutionFunction<HttpHandler> = async (req, context) => {
     if (isDisabled) {
-        Object.assign(context, { ...consoleLogger });
         return;
     }
     setupTelemetryClient(req, context);
@@ -75,7 +74,6 @@ const setupAppInsightForHttpTrigger: BeforeExecutionFunction<HttpHandler> = asyn
 
 const setupAppInsightForNonHttpTrigger: BeforeExecutionFunction = async (req, context) => {
     if (isDisabled) {
-        Object.assign(context, { ...consoleLogger });
         return;
     }
     setupTelemetryClient(req, context);

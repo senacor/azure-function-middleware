@@ -12,27 +12,6 @@ interface Logger {
     error(...args: any[]): void;
 }
 
-export const consoleLogger: Logger = {
-    debug(...args: any[]): void {
-        console.debug(args);
-    },
-    error(...args: any[]): void {
-        console.error(args);
-    },
-    info(...args: any[]): void {
-        console.info(args);
-    },
-    log(...args: any[]): void {
-        console.log(args);
-    },
-    trace(...args: any[]): void {
-        console.trace(args);
-    },
-    warn(...args: any[]): void {
-        console.warn(args);
-    },
-};
-
 export const createAppInsightsLogger = (telemetryClient: TelemetryClient): Logger => {
     return {
         debug(...args: any[]): void {

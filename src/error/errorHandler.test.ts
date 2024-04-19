@@ -1,11 +1,10 @@
 import { InvocationContext } from '@azure/functions';
-import { mock } from 'jest-mock-extended';
 
 import { ApplicationError } from './ApplicationError';
 import { errorHandler as sut } from './errorHandler';
 
 describe('Error-Handler should', () => {
-    const contextMock = mock<InvocationContext>();
+    const contextMock = new InvocationContext();
 
     beforeEach(() => {
         jest.restoreAllMocks();

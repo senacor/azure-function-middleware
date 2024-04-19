@@ -1,13 +1,12 @@
 import { HttpHandler, HttpRequest, InvocationContext } from '@azure/functions';
-import { mock, mockDeep } from 'jest-mock-extended';
 
 import { ApplicationError } from './error';
 import sut from './headerAuthentication';
 import { MiddlewareResult } from './middleware';
 
 describe('The header authentication middleware should', () => {
-    const contextMock = mock<InvocationContext>();
-    const requestMock = mockDeep<HttpRequest>();
+    const context = new InvocationContext();
+
     const initialMiddlewareResult: MiddlewareResult<ReturnType<HttpHandler>> = { $failed: false, $result: undefined };
 
     beforeEach(() => {
@@ -16,40 +15,53 @@ describe('The header authentication middleware should', () => {
     });
 
     test('successfully resolves when the default "x-ms-client-principal" header is present', async () => {
-        requestMock.headers.get.mockImplementationOnce((name) =>
-            name === 'x-ms-client-principal-id' ? 'Test Principal' : null,
-        );
-
-        await expect(sut()(requestMock, contextMock, initialMiddlewareResult)).resolves.not.toThrow();
+        await expect(
+            sut()(
+                new HttpRequest({
+                    url: 'http://localhost:8080',
+                    method: 'GET',
+                    headers: { 'x-ms-client-principal-id': 'Test Principal' },
+                }),
+                context,
+                initialMiddlewareResult,
+            ),
+        ).resolves.not.toThrow();
     });
 
     test('successfully resolves when the passed header validation function returns true', async () => {
         await expect(
-            sut({ validateUsingHeaderFn: () => true })(requestMock, contextMock, initialMiddlewareResult),
+            sut({ validateUsingHeaderFn: () => true })(
+                new HttpRequest({
+                    url: 'http://localhost:8080',
+                    method: 'GET',
+                }),
+                context,
+                initialMiddlewareResult,
+            ),
         ).resolves.not.toThrow();
     });
 
     test('fail caused by missing default "x-ms-client-principal" header', async () => {
-        // suppressing in order to enforce missing header
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        requestMock.headers['x-ms-client-principal-id'] = undefined;
-
-        await expect(sut()(requestMock, contextMock, initialMiddlewareResult)).rejects.toEqual(
-            new ApplicationError('Authentication error', 403, 'No sophisticated credentials provided'),
-        );
+        await expect(
+            sut()(
+                new HttpRequest({
+                    url: 'http://localhost:8080',
+                    method: 'GET',
+                }),
+                context,
+                initialMiddlewareResult,
+            ),
+        ).rejects.toEqual(new ApplicationError('Authentication error', 403, 'No sophisticated credentials provided'));
     });
 
     test('fail caused by missing default "x-ms-client-principal" header and using the provided error body', async () => {
-        // suppressing in order to enforce missing header
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        requestMock.headers['x-ms-client-principal-id'] = undefined;
-
         await expect(
             sut({ errorResponseBody: { error: 'Please authenticate properly' } })(
-                requestMock,
-                contextMock,
+                new HttpRequest({
+                    url: 'http://localhost:8080',
+                    method: 'GET',
+                }),
+                context,
                 initialMiddlewareResult,
             ),
         ).rejects.toEqual(new ApplicationError('Authentication error', 403, { error: 'Please authenticate properly' }));
@@ -57,15 +69,25 @@ describe('The header authentication middleware should', () => {
 
     test('fail caused by passed header validation function returns false', async () => {
         await expect(
-            sut({ validateUsingHeaderFn: () => false })(requestMock, contextMock, initialMiddlewareResult),
+            sut({ validateUsingHeaderFn: () => false })(
+                new HttpRequest({
+                    url: 'http://localhost:8080',
+                    method: 'GET',
+                }),
+                context,
+                initialMiddlewareResult,
+            ),
         ).rejects.toEqual(new ApplicationError('Authentication error', 403, 'No sophisticated credentials provided'));
     });
 
     test('fail caused by passed header validation function returns false and use the provided error body', async () => {
         await expect(
             sut({ validateUsingHeaderFn: () => false, errorResponseBody: { error: 'Please authenticate properly' } })(
-                requestMock,
-                contextMock,
+                new HttpRequest({
+                    url: 'http://localhost:8080',
+                    method: 'GET',
+                }),
+                context,
                 initialMiddlewareResult,
             ),
         ).rejects.toEqual(new ApplicationError('Authentication error', 403, { error: 'Please authenticate properly' }));
@@ -77,10 +99,17 @@ describe('The header authentication middleware should', () => {
                 validateUsingHeaderFn: () => false,
                 errorResponseBody: { error: 'Please authenticate properly' },
                 skipIfResultIsFaulty: true,
-            })(requestMock, contextMock, {
-                $failed: true,
-                $error: Error(),
-            }),
+            })(
+                new HttpRequest({
+                    url: 'http://localhost:8080',
+                    method: 'GET',
+                }),
+                context,
+                {
+                    $failed: true,
+                    $error: Error(),
+                },
+            ),
         ).resolves.not.toThrow();
     });
 
@@ -90,10 +119,17 @@ describe('The header authentication middleware should', () => {
                 validateUsingHeaderFn: () => false,
                 errorResponseBody: { error: 'Please authenticate properly' },
                 skipIfResultIsFaulty: false,
-            })(requestMock, contextMock, {
-                $failed: true,
-                $error: Error(),
-            }),
+            })(
+                new HttpRequest({
+                    url: 'http://localhost:8080',
+                    method: 'GET',
+                }),
+                context,
+                {
+                    $failed: true,
+                    $error: Error(),
+                },
+            ),
         ).rejects.toEqual(new ApplicationError('Authentication error', 403, { error: 'Please authenticate properly' }));
     });
 });

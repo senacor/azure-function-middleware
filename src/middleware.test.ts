@@ -1,23 +1,26 @@
 import { HttpRequest, InvocationContext } from '@azure/functions';
-import { mock } from 'jest-mock-extended';
 
 import { ApplicationError } from './error';
 import { middleware as sut } from './middleware';
 
 describe('The middleware layer should', () => {
-    const contextMock = mock<InvocationContext>();
-    const requestMock = mock<HttpRequest>();
-
+    const httpRequest = new HttpRequest({
+        url: 'http://localhost:8080',
+        method: 'GET',
+    });
+    let context = new InvocationContext();
     beforeEach(() => {
         jest.restoreAllMocks();
+        context = new InvocationContext();
+        jest.spyOn(context, 'error');
     });
 
     test('successfully call the passed functions without any middleware passed', async () => {
         const handlerMock = jest.fn();
 
-        await sut([], handlerMock, [])(requestMock, contextMock);
+        await sut([], handlerMock, [])(httpRequest, new InvocationContext());
 
-        expect(handlerMock).toHaveBeenCalledWith(requestMock, contextMock);
+        expect(handlerMock).toHaveBeenCalledWith(httpRequest, new InvocationContext());
     });
 
     test('successfully call the middleware and the passed functions', async () => {
@@ -25,11 +28,11 @@ describe('The middleware layer should', () => {
         const middlewareOneMock = jest.fn();
         const middlewareTwoMock = jest.fn();
 
-        await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [])(requestMock, contextMock);
+        await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [])(httpRequest, context);
 
-        expect(middlewareOneMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-        expect(middlewareTwoMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-        expect(handlerMock).toHaveBeenCalledWith(requestMock, contextMock);
+        expect(middlewareOneMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+        expect(middlewareTwoMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+        expect(handlerMock).toHaveBeenCalledWith(httpRequest, context);
     });
 
     test('successfully call the pre middleware and post middleware and the passed functions', async () => {
@@ -38,12 +41,12 @@ describe('The middleware layer should', () => {
         const middlewareTwoMock = jest.fn();
         const middlewarePostMock = jest.fn();
 
-        await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [middlewarePostMock])(requestMock, contextMock);
+        await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [middlewarePostMock])(httpRequest, context);
 
-        expect(middlewareOneMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-        expect(middlewareTwoMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-        expect(middlewarePostMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-        expect(handlerMock).toHaveBeenCalledWith(requestMock, contextMock);
+        expect(middlewareOneMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+        expect(middlewareTwoMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+        expect(middlewarePostMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+        expect(handlerMock).toHaveBeenCalledWith(httpRequest, context);
     });
 
     test('return an error when one middleware is failing', async () => {
@@ -52,10 +55,13 @@ describe('The middleware layer should', () => {
         const middlewareTwoMock = jest.fn();
         middlewareOneMock.mockRejectedValue(Error());
 
-        const res = await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [])(requestMock, contextMock);
+        const res = await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [])(httpRequest, context);
 
-        expect(middlewareOneMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-        expect(middlewareTwoMock).toHaveBeenCalledWith(requestMock, contextMock, { $error: Error(), $failed: true });
+        expect(middlewareOneMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+        expect(middlewareTwoMock).toHaveBeenCalledWith(httpRequest, context, {
+            $error: Error(),
+            $failed: true,
+        });
         expect(handlerMock).not.toBeCalled();
         expect(res).toEqual({
             status: 500,
@@ -63,7 +69,7 @@ describe('The middleware layer should', () => {
                 message: 'Internal server error',
             },
         });
-        expect(contextMock.error).toBeCalled();
+        expect(context.error).toBeCalled();
     });
 
     test('return an error when second middleware is failing', async () => {
@@ -72,10 +78,10 @@ describe('The middleware layer should', () => {
         const middlewareTwoMock = jest.fn();
         middlewareTwoMock.mockRejectedValue(Error());
 
-        const res = await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [])(requestMock, contextMock);
+        const res = await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [])(httpRequest, context);
 
-        expect(middlewareOneMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-        expect(middlewareTwoMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
+        expect(middlewareOneMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+        expect(middlewareTwoMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
         expect(handlerMock).not.toBeCalled();
         expect(res).toEqual({
             status: 500,
@@ -83,7 +89,7 @@ describe('The middleware layer should', () => {
                 message: 'Internal server error',
             },
         });
-        expect(contextMock.error).toBeCalled();
+        expect(context.error).toBeCalled();
     });
 
     test('return an error when the handler function is failing', async () => {
@@ -92,18 +98,18 @@ describe('The middleware layer should', () => {
         const middlewareTwoMock = jest.fn();
         handlerMock.mockRejectedValue(Error());
 
-        const res = await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [])(requestMock, contextMock);
+        const res = await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [])(httpRequest, context);
 
-        expect(middlewareOneMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-        expect(middlewareTwoMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-        expect(handlerMock).toHaveBeenCalledWith(requestMock, contextMock);
+        expect(middlewareOneMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+        expect(middlewareTwoMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+        expect(handlerMock).toHaveBeenCalledWith(httpRequest, context);
         expect(res).toEqual({
             status: 500,
             jsonBody: {
                 message: 'Internal server error',
             },
         });
-        expect(contextMock.error).toBeCalled();
+        expect(context.error).toBeCalled();
     });
 
     test('return an error when the handler function is failing and a error with status is returned', async () => {
@@ -112,16 +118,16 @@ describe('The middleware layer should', () => {
         const middlewareTwoMock = jest.fn();
         handlerMock.mockRejectedValue(new ApplicationError('Validation Error', 401, 'test-body'));
 
-        const res = await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [])(requestMock, contextMock);
+        const res = await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [])(httpRequest, context);
 
-        expect(middlewareOneMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-        expect(middlewareTwoMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-        expect(handlerMock).toHaveBeenCalledWith(requestMock, contextMock);
+        expect(middlewareOneMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+        expect(middlewareTwoMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+        expect(handlerMock).toHaveBeenCalledWith(httpRequest, context);
         expect(res).toEqual({
             status: 401,
             body: 'test-body',
         });
-        expect(contextMock.error).toBeCalled();
+        expect(context.error).toBeCalled();
     });
 
     test('return an error if the handler function is failing, but execute the post-execution-functions', async () => {
@@ -130,18 +136,21 @@ describe('The middleware layer should', () => {
         const middlewareTwoMock = jest.fn();
         handlerMock.mockRejectedValue(Error());
 
-        const res = await sut([middlewareOneMock], handlerMock, [middlewareTwoMock])(requestMock, contextMock);
+        const res = await sut([middlewareOneMock], handlerMock, [middlewareTwoMock])(httpRequest, context);
 
-        expect(middlewareOneMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-        expect(handlerMock).toHaveBeenCalledWith(requestMock, contextMock);
+        expect(middlewareOneMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+        expect(handlerMock).toHaveBeenCalledWith(httpRequest, context);
         expect(res).toEqual({
             status: 500,
             jsonBody: {
                 message: 'Internal server error',
             },
         });
-        expect(middlewareTwoMock).toHaveBeenCalledWith(requestMock, contextMock, { $error: Error(), $failed: true });
-        expect(contextMock.error).toBeCalled();
+        expect(middlewareTwoMock).toHaveBeenCalledWith(httpRequest, context, {
+            $error: Error(),
+            $failed: true,
+        });
+        expect(context.error).toBeCalled();
     });
 
     test('use the provided error-handle to create a response', async () => {
@@ -160,15 +169,15 @@ describe('The middleware layer should', () => {
 
         const res = await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [middlewarePostFunction], {
             errorResponseHandler,
-        })(requestMock, contextMock);
+        })(httpRequest, context);
 
-        expect(handlerMock).toHaveBeenCalledWith(requestMock, contextMock);
+        expect(handlerMock).toHaveBeenCalledWith(httpRequest, context);
         expect(res).toEqual({
             status: 1337,
             body: 'My custom error response',
         });
-        expect(contextMock.error).toBeCalled();
-        expect(middlewarePostFunction).toHaveBeenCalledWith(requestMock, contextMock, {
+        expect(context.error).toBeCalled();
+        expect(middlewarePostFunction).toHaveBeenCalledWith(httpRequest, context, {
             $error: Error(),
             $failed: true,
         });
@@ -186,12 +195,12 @@ describe('The middleware layer should', () => {
         await sut([excludeFunction() && middlewareOneMock, middlewareTwoMock], handlerMock, [
             includeFunction() && middlewarePostOneMock,
             excludeFunction() && middlewarePostTwoMock,
-        ])(requestMock, contextMock);
+        ])(httpRequest, context);
 
         expect(middlewareOneMock).not.toHaveBeenCalled();
-        expect(middlewareTwoMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-        expect(handlerMock).toHaveBeenCalledWith(requestMock, contextMock);
-        expect(middlewarePostOneMock).toHaveBeenCalledWith(requestMock, contextMock, {
+        expect(middlewareTwoMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+        expect(handlerMock).toHaveBeenCalledWith(httpRequest, context);
+        expect(middlewarePostOneMock).toHaveBeenCalledWith(httpRequest, context, {
             $failed: false,
             $result: undefined,
         });
@@ -208,12 +217,12 @@ describe('The middleware layer should', () => {
             await expect(
                 async () =>
                     await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [], { disableErrorHandling: true })(
-                        requestMock,
-                        contextMock,
+                        httpRequest,
+                        context,
                     ),
             ).rejects.toThrow();
-            expect(middlewareOneMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-            expect(middlewareTwoMock).toHaveBeenCalledWith(requestMock, contextMock, {
+            expect(middlewareOneMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+            expect(middlewareTwoMock).toHaveBeenCalledWith(httpRequest, context, {
                 $failed: true,
                 $error: Error(),
             });
@@ -229,13 +238,13 @@ describe('The middleware layer should', () => {
             await expect(
                 async () =>
                     await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [], { disableErrorHandling: true })(
-                        requestMock,
-                        contextMock,
+                        httpRequest,
+                        context,
                     ),
             ).rejects.toThrow();
 
-            expect(middlewareOneMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-            expect(middlewareTwoMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
+            expect(middlewareOneMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+            expect(middlewareTwoMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
             expect(handlerMock).not.toBeCalled();
         });
 
@@ -248,14 +257,14 @@ describe('The middleware layer should', () => {
             await expect(
                 async () =>
                     await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [], { disableErrorHandling: true })(
-                        requestMock,
-                        contextMock,
+                        httpRequest,
+                        context,
                     ),
             ).rejects.toThrow();
 
-            expect(middlewareOneMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-            expect(middlewareTwoMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-            expect(handlerMock).toHaveBeenCalledWith(requestMock, contextMock);
+            expect(middlewareOneMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+            expect(middlewareTwoMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+            expect(handlerMock).toHaveBeenCalledWith(httpRequest, context);
         });
 
         test('the handler function is failing and a error with status is returned', async () => {
@@ -267,14 +276,14 @@ describe('The middleware layer should', () => {
             await expect(
                 async () =>
                     await sut([middlewareOneMock, middlewareTwoMock], handlerMock, [], { disableErrorHandling: true })(
-                        requestMock,
-                        contextMock,
+                        httpRequest,
+                        context,
                     ),
             ).rejects.toThrow();
 
-            expect(middlewareOneMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-            expect(middlewareTwoMock).toHaveBeenCalledWith(requestMock, contextMock, { $failed: false });
-            expect(handlerMock).toHaveBeenCalledWith(requestMock, contextMock);
+            expect(middlewareOneMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+            expect(middlewareTwoMock).toHaveBeenCalledWith(httpRequest, context, { $failed: false });
+            expect(handlerMock).toHaveBeenCalledWith(httpRequest, context);
         });
     });
 });
