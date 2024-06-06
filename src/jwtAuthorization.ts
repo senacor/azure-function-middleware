@@ -47,7 +47,7 @@ export default <T>(
                         new ApplicationError('Authorization error', 401, errorResponseBody ?? 'Unauthorized'),
                     );
                 } else {
-                    context.extraInputs = { ...context.extraInputs, ...{ jwt } };
+                    context.extraInputs.set('jwt', jwt);
                     return Promise.resolve();
                 }
             }
