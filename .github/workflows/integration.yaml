@@ -16,9 +16,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: install azure-functions-core-tools
+      - name: install global dependencies
         shell: bash
-        run: npm install -g azure-functions-core-tools@4 --unsafe-perm true
+        run: | 
+          npm install -g azure-functions-core-tools@4 --unsafe-perm true
+          npm install -g wait-on
       - name: install dependencies
         shell: bash
         run: npm ci
@@ -29,11 +31,7 @@ jobs:
           npm run start &
           
           echo "Waiting until function launched on 8080..."
-
-          while ! nc -z 127.0.0.1 8080; do   
-            sleep 1
-          done
-
+          wait-on tcp:8080
           echo "Function launched"
       - name: test-function
         shell: bash
