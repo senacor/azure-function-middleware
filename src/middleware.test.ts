@@ -212,7 +212,7 @@ describe('The middleware layer should', () => {
             const handlerMock = jest.fn();
             const middlewareOneMock = jest.fn();
             const middlewareTwoMock = jest.fn();
-            middlewareOneMock.mockRejectedValue(Error());
+            middlewareOneMock.mockRejectedValue(new Error());
 
             await expect(
                 async () =>

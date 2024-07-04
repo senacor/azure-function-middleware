@@ -34,7 +34,9 @@ const middlewareCore =
                 } catch (err) {
                     if (err instanceof Error) {
                         handlerResult = { $failed: true, $error: err };
+                        continue;
                     }
+                    handlerResult = { $failed: true, $error: new Error(`Caught ${err} which is not of type Error`) };
                 }
             }
         }
