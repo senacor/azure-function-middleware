@@ -16,20 +16,25 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: install-library
+      - name: install azure-functions-core-tools
         shell: bash
-        run: |
-          npm ci
-      - name: install-test-function
+        run: npm install -g azure-functions-core-tools@4 --unsafe-perm true
+      - name: install dependencies
         shell: bash
-        working-directory: ./example
-        run: |
-          npm ci && npm install -g azure-functions-core-tools@4 --unsafe-perm true
+        run: npm ci
       - name: start-test-function
         shell: bash
         working-directory: ./example
         run: |
           npm run start &
+          
+          echo "Waiting until function launched on 8080..."
+
+          while ! nc -z 127.0.0.1 8080; do   
+            sleep 1
+          done
+
+          echo "Function launched"
       - name: test-function
         shell: bash
         run: |
