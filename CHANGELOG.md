@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 3.0.0 (27.06.2024)
+~ Upgraded to Programming Model v4 (https://techcommunity.microsoft.com/t5/apps-on-azure-blog/azure-functions-node-js-v4-programming-model-is-generally/ba-p/3929217)
+- Removed Node16 from the CI/CD Pipeline
+
 ## 2.3.1 (26.02.2024)
 ~ Bump the version of jwt-decode
 

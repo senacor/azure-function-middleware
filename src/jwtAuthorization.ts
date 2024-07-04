@@ -1,23 +1,40 @@
-import { AzureFunction, Context, ContextBindingData, HttpRequest } from '@azure/functions';
+import { HttpHandler } from '@azure/functions';
+import { HttpRequestParams } from '@azure/functions/types/http';
 import { jwtDecode } from 'jwt-decode';
 
 import { ApplicationError } from './error';
+import { BeforeExecutionFunction } from './middleware';
 
-const evaluate = <T>(rule: Rule<T>, parameters: ContextBindingData, jwt: T) => {
+const evaluate = <T>(rule: Rule<T>, parameters: HttpRequestParams, jwt: T) => {
     const pathParameter = rule.parameterExtractor(parameters);
     const jwtParameter = rule.jwtExtractor(jwt);
     return pathParameter === jwtParameter;
 };
 
 export type Rule<T> = {
-    parameterExtractor: (parameters: ContextBindingData) => string;
+    parameterExtractor: (parameters: HttpRequestParams) => string;
     jwtExtractor: (jwt: T) => string;
 };
 
-export default <T>(rules: Rule<T>[], errorResponseBody?: unknown): AzureFunction => {
-    return (context: Context, req: HttpRequest): Promise<void> => {
-        const authorizationHeader = req.headers.authorization;
-        const parameters = context.bindingData;
+export type JwtAuthorizationOptions = {
+    skipIfResultIsFaulty: boolean;
+};
+
+export default <T>(
+    rules: Rule<T>[],
+    errorResponseBody?: unknown,
+    opts?: Partial<JwtAuthorizationOptions>,
+): BeforeExecutionFunction<HttpHandler> => {
+    const skipIfResultIsFaulty = opts?.skipIfResultIsFaulty ?? true;
+
+    return (req, context, result) => {
+        if (skipIfResultIsFaulty && result.$failed) {
+            context.info('Skipping jwt-authorization because the result is faulty.');
+            return;
+        }
+
+        const authorizationHeader = req.headers.get('authorization');
+        const parameters = req.params;
         if (authorizationHeader) {
             const token = authorizationHeader.split(' ')[1];
             if (token) {
@@ -26,15 +43,13 @@ export default <T>(rules: Rule<T>[], errorResponseBody?: unknown): AzureFunction
                     .map((ruleFunction) => evaluate(ruleFunction, parameters, jwt))
                     .reduce((previousValue, currentValue) => previousValue && currentValue);
                 if (!validationResult) {
-                    return Promise.reject(
-                        new ApplicationError('Authorization error', 401, errorResponseBody ?? 'Unauthorized'),
-                    );
+                    throw new ApplicationError('Authorization error', 401, errorResponseBody ?? 'Unauthorized');
                 } else {
-                    context.bindingData = { ...context.bindingData, ...{ jwt } };
-                    return Promise.resolve();
+                    context.extraInputs.set('jwt', jwt);
+                    return;
                 }
             }
         }
-        return Promise.reject(new ApplicationError('Authorization error', 401, errorResponseBody ?? 'Unauthorized'));
+        throw new ApplicationError('Authorization error', 401, errorResponseBody ?? 'Unauthorized');
     };
 };
