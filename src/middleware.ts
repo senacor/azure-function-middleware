@@ -110,7 +110,9 @@ export const middleware =
         postExecution: (PostExecutionFunction<T> | false)[],
         opts?: Options,
     ) =>
-    async (request: Parameters<T>[0], context: InvocationContext): Promise<unknown> => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore - Sorry, but the type `FunctionResult<T = unknown> = T | Promise<T>` is very unhandy
+    async (request: Parameters<T>[0], context: InvocationContext): ReturnType<T> => {
         if (opts?.disableErrorHandling) {
             return await middlewareWrapper(beforeExecution, handler, postExecution, request, context, opts);
         }
