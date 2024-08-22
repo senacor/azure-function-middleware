@@ -26,7 +26,7 @@ if (!isDisabled) {
         .setSendLiveMetrics(false)
         .setDistributedTracingMode(appInsights.DistributedTracingModes.AI_AND_W3C)
         .setAutoCollectHeartbeat(false)
-        .setInternalLogging(true);
+        .setInternalLogging(false, true);
 
     appInsights.defaultClient.commonProperties = {
         environment: process.env.ENVIRONMENT ?? 'UNDEFINED',
