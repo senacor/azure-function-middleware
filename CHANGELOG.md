@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.0.2 (22.08.2024)
+- Disable Application Insights internal debug logging
+
+## 3.0.1 (07.08.2024)
+- Fix type of middleware function
+
 ## 3.0.0 (04.07.2024)
 ~ Upgraded to Programming Model v4 (https://techcommunity.microsoft.com/t5/apps-on-azure-blog/azure-functions-node-js-v4-programming-model-is-generally/ba-p/3929217)
 - Removed Node16 from the CI/CD Pipeline
