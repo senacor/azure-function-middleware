@@ -21,7 +21,7 @@ const middlewareCore =
         handler: T,
         postExecution: (PostExecutionFunction<T> | false)[],
     ) =>
-    async (request: Parameters<T>, context: InvocationContext): Promise<ReturnType<T> | Error> => {
+    async (request: Parameters<T>, context: InvocationContext): Promise<ReturnType<T> | undefined | Error> => {
         let handlerResult: MiddlewareResult<ReturnType<T>> = { $failed: false, $result: undefined };
 
         if (beforeExecution) {
@@ -63,10 +63,6 @@ const middlewareCore =
         if (isErrorResult(handlerResult)) {
             context.error(`An caught error occurred in the execution of the handler: ${stringify(handlerResult)}`);
             return handlerResult.$error;
-        }
-
-        if (handlerResult.$result === undefined) {
-            return new Error('Illegal-State: Result of the handler was empty.');
         }
 
         return handlerResult.$result;
