@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 3.0.3 (05.09.2024)
+- Remove check for empty result
+
 ## 3.0.2 (22.08.2024)
 - Disable Application Insights internal debug logging
 
