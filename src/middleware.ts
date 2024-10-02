@@ -61,7 +61,7 @@ const middlewareCore =
         }
 
         if (isErrorResult(handlerResult)) {
-            context.error(`An caught error occurred in the execution of the handler: ${stringify(handlerResult)}`);
+            context.error(`An caught error occurred in the execution of the handler:`, handlerResult.$error);
             return handlerResult.$error;
         }
 
