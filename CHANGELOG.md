@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 3.0.4 (02.10.2024)
+* Fix logging of errors throw by the handler
+
 ## 3.0.3 (05.09.2024)
 - Remove check for empty result
 
