@@ -3,8 +3,16 @@ import { HttpHandler, HttpRequestParams, app } from '@azure/functions';
 import { middleware } from '../../src';
 import authorization from '../../src/jwtAuthorization';
 
+type JwtClaims = {
+    sub: string;
+    name: string;
+};
+
 export const handler: HttpHandler = async (req, context) => {
-    context.log('Function called');
+    const jwtClaims = context.extraInputs.get('jwt') as JwtClaims;
+
+    context.log(`Function called by ${JSON.stringify(jwtClaims)}`);
+
     return { status: 204 };
 };
 
@@ -17,7 +25,7 @@ app.http('test-jwt-authorization-function', {
             authorization([
                 {
                     parameterExtractor: (parameters: HttpRequestParams) => parameters.id,
-                    jwtExtractor: (jwt: { userId: string }) => jwt.userId,
+                    jwtExtractor: (jwt: { sub: string }) => jwt.sub,
                 },
             ]),
         ],

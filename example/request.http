@@ -1,1 +1,15 @@
+### Call function test-header-authentication-function
 POST http://localhost:8080/api/authentication
+x-ms-client-principal-id: 42
+
+### Call function test-jwt-authorization-function
+POST http://localhost:8080/api/authorization/user-id
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLWlkIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.UtSlzAkI3g8amFZFZcsismCy0f_MZD7lOQ5zgJn5FJU
+
+### Call function test-validation-function
+POST http://localhost:8080/api/validation
+Content-Type: application/json
+
+{
+  "name": "John Doe"
+}
