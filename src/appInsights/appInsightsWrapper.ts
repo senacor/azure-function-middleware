@@ -153,7 +153,7 @@ const finalizeAppInsightForHttpTriggerWithConfig: FinalizeAppInsightWithConfig<H
 
     telemetryClient.trackRequest({
         name: context.functionName,
-        resultCode: result.status ?? '0',
+        resultCode: result.status?.toString() ?? '0',
         // important so that requests with a non-OK response show up as failed
         success: result.status ? result.status < 400 : true,
         url: req.url,
@@ -194,7 +194,7 @@ const finalizeAppInsightForNonHttpTriggerWithConfig: FinalizeAppInsightWithConfi
 
     telemetryClient.trackRequest({
         name: context.functionName,
-        resultCode: 0,
+        resultCode: '0',
         // important so that requests with a non-OK response show up as failed
         success: !isErrorResult(result),
         url: context.functionName,
