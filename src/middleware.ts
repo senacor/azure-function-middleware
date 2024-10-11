@@ -36,7 +36,10 @@ const middlewareCore =
                         handlerResult = { $failed: true, $error: err };
                         continue;
                     }
-                    handlerResult = { $failed: true, $error: new Error(`Caught ${err} which is not of type Error`) };
+                    handlerResult = {
+                        $failed: true,
+                        $error: new Error(`Caught ${stringify(err)} which is not of type Error`),
+                    };
                 }
             }
         }
@@ -61,7 +64,7 @@ const middlewareCore =
         }
 
         if (isErrorResult(handlerResult)) {
-            context.error(`An caught error occurred in the execution of the handler:`, handlerResult.$error);
+            context.error(`An caught error occurred in the execution of the handler: ${handlerResult.$error}`);
             return handlerResult.$error;
         }
 
