@@ -2,9 +2,9 @@ import axios from 'axios';
 
 import waitTillFunctionReady from './waitTillFunctionReady';
 
-// Token generated with https://jwt.io/ containing the "userId" "c8e65ca7-a008-4b1c-b52a-4ad0ee417017"
+// Token generated with https://jwt.io/ containing the "sub" "c8e65ca7-a008-4b1c-b52a-4ad0ee417017"
 const sampleToken =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjOGU2NWNhNy1hMDA4LTRiMWMtYjUyYS00YWQwZWU0MTcwMTcifQ.EvY_4nO-uZrc2mNY9E-RvLb5CI-q5tzv1pwBhFaUWgs';
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjOGU2NWNhNy1hMDA4LTRiMWMtYjUyYS00YWQwZWU0MTcwMTciLCJuYW1lIjoiSm9obiBEb2UiLCJpYXQiOjE1MTYyMzkwMjJ9.TYD4sZM42CWiIPlKm4n2uesaGHRi_priukmc4xSn0K0';
 
 describe('The example azure function is started and the JWT authorization should execute the request', () => {
     beforeAll(async () => {
