@@ -1,7 +1,7 @@
 # CHANGELOG
 
 ## 3.1.0 (11.10.2024)
-* Switched to `util.inspect` to stringify values for logging
+* Switched to `inspect` from `node:util` to stringify values for logging
 * Changed `debug` and `trace` logs to severity level verbose
 
 ## 3.0.4 (02.10.2024)
