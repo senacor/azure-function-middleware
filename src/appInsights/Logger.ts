@@ -1,5 +1,4 @@
-import { TelemetryClient } from 'applicationinsights';
-import { SeverityLevel } from 'applicationinsights/out/Declarations/Contracts';
+import { KnownSeverityLevel, TelemetryClient } from 'applicationinsights';
 
 import { stringify } from '../util/stringify';
 
@@ -17,37 +16,37 @@ export const createAppInsightsLogger = (telemetryClient: TelemetryClient): Logge
         debug(...args: any[]): void {
             telemetryClient.trackTrace({
                 message: stringify(args),
-                severity: SeverityLevel.Information,
+                severity: KnownSeverityLevel.Information,
             });
         },
         error(...args: any[]): void {
             telemetryClient.trackTrace({
                 message: stringify(args),
-                severity: SeverityLevel.Error,
+                severity: KnownSeverityLevel.Error,
             });
         },
         info(...args: any[]): void {
             telemetryClient.trackTrace({
                 message: stringify(args),
-                severity: SeverityLevel.Information,
+                severity: KnownSeverityLevel.Information,
             });
         },
         log(...args: any[]): void {
             telemetryClient.trackTrace({
                 message: stringify(args),
-                severity: SeverityLevel.Information,
+                severity: KnownSeverityLevel.Information,
             });
         },
         trace(...args: any[]): void {
             telemetryClient.trackTrace({
                 message: stringify(args),
-                severity: SeverityLevel.Information,
+                severity: KnownSeverityLevel.Information,
             });
         },
         warn(...args: any[]): void {
             telemetryClient.trackTrace({
                 message: stringify(args),
-                severity: SeverityLevel.Warning,
+                severity: KnownSeverityLevel.Warning,
             });
         },
     };

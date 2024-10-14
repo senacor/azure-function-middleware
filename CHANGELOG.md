@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 3.0.5 (02.10.2024)
+* Upgraded applicationinsights to v3.0.0
+
 ## 3.0.4 (02.10.2024)
 * Fix logging of errors throw by the handler
 

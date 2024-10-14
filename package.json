@@ -1,6 +1,6 @@
 {
     "name": "@senacor/azure-function-middleware",
-    "version": "3.0.4",
+    "version": "3.0.5",
     "description": "Middleware for azure functions to handle authentication, authorization, error handling and logging",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -45,7 +45,7 @@
         "jwt-decode": "^4.0.0"
     },
     "peerDependencies": {
-        "applicationinsights": "^2.5.0",
+        "applicationinsights": "^3.0.0",
         "durable-functions": "^3.1.0",
         "joi": "^17.9.1"
     }
