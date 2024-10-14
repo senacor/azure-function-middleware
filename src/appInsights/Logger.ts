@@ -4,47 +4,47 @@ import { SeverityLevel } from 'applicationinsights/out/Declarations/Contracts';
 import { stringify } from '../util/stringify';
 
 interface Logger {
-    log(...args: any[]): void;
-    trace(...args: any[]): void;
-    debug(...args: any[]): void;
-    info(...args: any[]): void;
-    warn(...args: any[]): void;
-    error(...args: any[]): void;
+    log(...args: unknown[]): void;
+    trace(...args: unknown[]): void;
+    debug(...args: unknown[]): void;
+    info(...args: unknown[]): void;
+    warn(...args: unknown[]): void;
+    error(...args: unknown[]): void;
 }
 
 export const createAppInsightsLogger = (telemetryClient: TelemetryClient): Logger => {
     return {
-        debug(...args: any[]): void {
+        debug(...args: unknown[]): void {
             telemetryClient.trackTrace({
                 message: stringify(args),
-                severity: SeverityLevel.Information,
+                severity: SeverityLevel.Verbose,
             });
         },
-        error(...args: any[]): void {
+        error(...args: unknown[]): void {
             telemetryClient.trackTrace({
                 message: stringify(args),
                 severity: SeverityLevel.Error,
             });
         },
-        info(...args: any[]): void {
+        info(...args: unknown[]): void {
             telemetryClient.trackTrace({
                 message: stringify(args),
                 severity: SeverityLevel.Information,
             });
         },
-        log(...args: any[]): void {
+        log(...args: unknown[]): void {
             telemetryClient.trackTrace({
                 message: stringify(args),
                 severity: SeverityLevel.Information,
             });
         },
-        trace(...args: any[]): void {
+        trace(...args: unknown[]): void {
             telemetryClient.trackTrace({
                 message: stringify(args),
-                severity: SeverityLevel.Information,
+                severity: SeverityLevel.Verbose,
             });
         },
-        warn(...args: any[]): void {
+        warn(...args: unknown[]): void {
             telemetryClient.trackTrace({
                 message: stringify(args),
                 severity: SeverityLevel.Warning,
