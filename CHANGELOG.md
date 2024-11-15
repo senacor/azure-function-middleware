@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 3.1.1 (15.11.2024)
+* Do not limit array length, object depth or string length for logging
+
 ## 3.1.0 (11.10.2024)
 * Switched to `inspect` from `node:util` to stringify values for logging
 * Changed `debug` and `trace` logs to severity level verbose
