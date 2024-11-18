@@ -24,4 +24,8 @@ describe('stringify should', () => {
     it('join multiple arguments with spaces', () => {
         expect(stringify('Test', 2, { message: 'World' })).toBe("Test 2 { message: 'World' }");
     });
+
+    it('print all array items', () => {
+        expect(stringify(Array(250).fill(1)).match(/1/g)?.length).toBe(250);
+    });
 });

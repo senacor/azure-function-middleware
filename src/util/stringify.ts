@@ -9,5 +9,5 @@ function stringifyValue(value: unknown): string {
         return value;
     }
 
-    return inspect(value);
+    return inspect(value, { depth: null, maxArrayLength: null, maxStringLength: null });
 }
