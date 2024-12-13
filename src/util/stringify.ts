@@ -9,5 +9,17 @@ function stringifyValue(value: unknown): string {
         return value;
     }
 
-    return inspect(value, { depth: null, maxArrayLength: null, maxStringLength: null });
+    if (isJsonSerializable(value)) {
+        return JSON.stringify(value);
+    }
+
+    return inspect(value);
+}
+
+type JsonSerializable = {
+    toJSON: () => unknown;
+};
+
+function isJsonSerializable(value: unknown): value is JsonSerializable {
+    return typeof (value as JsonSerializable)?.toJSON === 'function';
 }

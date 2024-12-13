@@ -3,7 +3,6 @@ import { AnySchema } from 'joi';
 
 import { ApplicationError } from './error';
 import { BeforeExecutionFunction, MiddlewareResult, PostExecutionFunction, isErrorResult } from './middleware';
-import { stringify } from './util/stringify';
 
 type ValidationOptions = Partial<{
     transformErrorMessage: (message: string) => unknown;
@@ -39,8 +38,8 @@ export function requestValidation(schema: AnySchema, opts?: ValidationOptions): 
             if (validationResult && validationResult.error) {
                 context.error(
                     `The request did not match the given schema.${
-                        printRequest ? stringify(toBeValidatedContent) : ''
-                    }: ${stringify(validationResult)}`,
+                        printRequest ? JSON.stringify(toBeValidatedContent) : ''
+                    }: ${JSON.stringify(validationResult)}`,
                 );
 
                 if (shouldThrowOnValidationError) {
@@ -93,8 +92,8 @@ export function responseValidation(schema: AnySchema, opts?: ValidationOptions):
         if (validationResult && validationResult.error) {
             context.error(
                 `The response did not match the given schema.${
-                    printResponse ? stringify(toBeValidatedContent) : ''
-                }: ${stringify(validationResult)}`,
+                    printResponse ? JSON.stringify(toBeValidatedContent) : ''
+                }: ${JSON.stringify(validationResult)}`,
             );
 
             if (shouldThrowOnValidationError) {
