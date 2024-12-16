@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 3.1.2 (13.12.2024)
+* Use default limits for array length, object depth or string length for logging (reverts change from version 3.1.1) as this could cause a huge memory consumption in some cases
+* Use `JSON.stringify` to log objects that have a `toJSON` method
+
 ## 3.1.1 (15.11.2024)
 * Do not limit array length, object depth or string length for logging
 

@@ -25,7 +25,17 @@ describe('stringify should', () => {
         expect(stringify('Test', 2, { message: 'World' })).toBe("Test 2 { message: 'World' }");
     });
 
-    it('print all array items', () => {
-        expect(stringify(Array(250).fill(1)).match(/1/g)?.length).toBe(250);
+    it('do not print all items of large arrays', () => {
+        expect(stringify(Array(250).fill(1)).match(/1/g)?.length).toBeLessThan(250);
+    });
+
+    it('use toJSON function if available', () => {
+        const input = {
+            toJSON: () => ({
+                value: 42,
+            }),
+        };
+
+        expect(stringify(input)).toEqual('{"value":42}');
     });
 });
