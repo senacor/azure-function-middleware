@@ -2,8 +2,7 @@ import { HttpHandler, app } from '@azure/functions';
 import * as Joi from 'joi';
 import { ObjectSchema } from 'joi';
 
-import { PostExecutionFunction, middleware } from '../../src';
-import { requestValidation as validation } from '../../src/validation';
+import { PostExecutionFunction, middleware, requestValidation } from '../../src';
 
 const schema: ObjectSchema = Joi.object({
     name: Joi.string().min(3).max(30).required(),
@@ -25,5 +24,7 @@ app.http('test-validation-function', {
     methods: ['POST'],
     authLevel: 'anonymous',
     route: 'validation',
-    handler: middleware<HttpHandler>([validation(schema, { printInput: true })], functionHandler, [postFunction]),
+    handler: middleware<HttpHandler>([requestValidation(schema, { printInput: true })], functionHandler, [
+        postFunction,
+    ]),
 });

@@ -1,14 +1,11 @@
 # Azure Function Middleware
 
-Introduction
-
-The Azure Function Middleware introduces a middleware pattern for Azure Functions in Node.js, enhancing the development 
-experience by simplifying the integration of cross-cutting concerns such as schema validation, authorization, and error handling.
+The Azure Function Middleware introduces a middleware pattern for [Azure Functions in Node.js](https://learn.microsoft.com/en-us/azure/azure-functions/functions-overview?pivots=programming-language-javascript), 
+enhancing the development experience by simplifying the integration of cross-cutting concerns such as schema validation, authorization, and error handling.
 
 ## Installation
 
 Before you integrate this middleware into your project, ensure you have Node.js installed, and you're familiar with Azure Functions. Follow these steps to set up:
-
 
 ```bash
 npm install @senacor/azure-function-middleware
@@ -18,15 +15,28 @@ npm install @senacor/azure-function-middleware
 The middleware interface is intuitive, designed for expansion, and integrates seamlessly with Azure Functions. Here's a quick example to get you started:
 
 ```typescript
-const schema = Joi.object().keys({
-    name: Joi.string().min(3).max(30).required(),
-});
+import { HttpRequest, InvocationContext, app } from '@azure/functions';
+import { AppInsightForHttpTrigger, middleware, requestBodyValidation } from '@senacor/azure-function-middleware';
+import * as Joi from 'joi';
 
-const functionHandler = async (context: Context, req: HttpRequest): Promise<void> => {
-    context.res = { status: 201 };
+const httpHandler = async (request: HttpRequest, context: InvocationContext) => {
+  context.info('function called');
+  return { status: 201 };
 };
 
-export default middleware([validation(schema), functionHandler, []]);
+const requestBodySchema = Joi.object().keys({
+  name: Joi.string().min(3).max(30).required(),
+});
+
+app.http('example-function', {
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  route: 'example',
+  handler: middleware([AppInsightForHttpTrigger.setup, requestBodyValidation(requestBodySchema)], httpHandler, [
+    AppInsightForHttpTrigger.finalize,
+  ]),
+});
+
 ```
 
 This pattern aims to deliver a core set of features and a simplified interface for creating additional middleware functions tailored for Azure Functions.
@@ -38,8 +48,8 @@ Specific error responses can be defined by throwing errors in the following form
 
 ```typescript
 export class ApplicationError<T> extends Error {
-    status: number;
-    body?: T;
+  status: number;
+  body?: T;
 }
 ```
 
@@ -51,126 +61,225 @@ The middleware supports the integration of generic functions like request valida
 These functions must comply with the 'AzureFunction' type from the '@azure/functions' package. 
 They are crucial for extending the middleware's capabilities while adhering to Azure's function signature requirements.
 
-```typescript
-import { AzureFunction } from '@azure/functions';
-
-// 'AzureFunction' type signature
-export type AzureFunction = (context: Context, ...args: any[]) => Promise<any> | void;
-
-// Configuring middleware with generic functions
-export default middleware([validation(schema)], functionHandler, []);
-```
-
-Such generic functions are executed in sequence before the main handler function. 
-If a post-execution function is necessary, it can be included in the postExecution array, the third argument in the middleware function. The post execution functions are also executed in sequence
-
-### Validation
-
-The function to validate requests is based on [Joi](https://www.npmjs.com/package/joi). The usage is fairly simply:
+Here is an example how you can write your own before and post execution functions:
 
 ```typescript
-export default middleware([requestValidation(schema)], functionHandler, []);
+import { HttpHandler, app } from '@azure/functions';
+import { BeforeExecutionFunction, PostExecutionFunction, middleware } from '@senacor/azure-function-middleware';
+
+export const httpHandler: HttpHandler = async (request, context) => {
+  context.info('Function called');
+  return { status: 201 };
+};
+
+const beforeFunction: BeforeExecutionFunction = (request, context, result) => {
+  context.info('Called before httpHandler');
+};
+
+const postFunction: PostExecutionFunction = (request, context, result) => {
+  context.log('Called after httpHandler');
+};
+
+app.http('test-validation-function', {
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  route: 'validation',
+  handler: middleware([beforeFunction], httpHandler, [postFunction]),
+});
 ```
 
-The passed schema is a Joi ObjectSchema to check the passed request against. When the request is valid against the schema, the next middleware function gets called. In case the check of the request against the schema is invalid, the middleware function throws an error, canceling the request and returning an `400 - Bad Request` with the Joi error message.
+First all `beforeExecution` functions are executed in the given order. Then the `httpHandler` is called and afterwards all `postExecution` are executed in the given order.
 
-The body of the response could be customized by adding a transformer like in the following example. The passed message is the Joi error message.
+The Azure Function Middleware provides some useful before and post execution functions which are described in the following sections.
+
+### Request Body Validation
+
+The function validates the request body based on a [Joi Schema](https://www.npmjs.com/package/joi).
 
 ```typescript
-export default middleware(handler, [
-    requestValidation(schema, {
-        transformErrorMessage: (message) => ({
-            type: 'Invalid  request object',
-            detail: message,
-        })
-    }),
-])
+import { HttpHandler, app } from '@azure/functions';
+import { middleware, requestBodyValidation } from '@senacor/azure-function-middleware';
+import { ObjectSchema } from 'joi';
+import * as Joi from 'joi';
+
+export const httpHandler: HttpHandler = async (req, context) => {
+  context.info('Function called');
+  return { status: 201 };
+};
+
+const requestBodySchema: ObjectSchema = Joi.object({
+  name: Joi.string().min(3).max(30).required(),
+}).required();
+
+app.http('example-function', {
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  route: 'example',
+  handler: middleware([requestBodyValidation(requestBodySchema)], httpHandler, []),
+});
 ```
 
-By default, the request body is getting validated. To validate other parts of the request or context the `extractValidationContentFromRequest` function could be used, when initializing the middleware.
+By default, an `ApplicationError` with status 400 will be thrown and the `httpHandler` is not executed if the request body does not match the provided schema.
+There is an additional parameter to customize the behavior of `requestBodyValidation` (see [requestBodyValidation.ts](src/validation/requestBodyValidation.ts)).
+
+### Request Query Params Validation
+
+The function validates the request query parameters based on a [Joi Schema](https://www.npmjs.com/package/joi).
 
 ```typescript
-export default middleware([
-    requestValidation(schema, {extractValidationContentFromRequest: (req, context) => req.query.name})],
-    handler,
-    []
-)
+import { HttpHandler, app } from '@azure/functions';
+import { middleware, requestQueryParamsValidation } from '@senacor/azure-function-middleware';
+import { ObjectSchema } from 'joi';
+import * as Joi from 'joi';
+
+export const httpHandler: HttpHandler = async (req, context) => {
+    context.info('Function called');
+    return { status: 201 };
+};
+
+const queryParamsSchema: ObjectSchema = Joi.object({
+  name: Joi.string().valid('active', 'expired').optional(),
+});
+
+app.http('example-function', {
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  route: 'example',
+  handler: middleware([requestQueryParamsValidation(queryParamsSchema)], httpHandler, []),
+});
 ```
 
-In this example the `name` contained in the query is getting validated against the passed request.
+By default, an `ApplicationError` with status 400 will be thrown and the `httpHandler` is not executed if the query params do not match the provided schema.
+There is an additional parameter to customize the behavior of `requestQueryParamsValidation` (see [requestQueryParamsValidation.ts](src/validation/requestQueryParamsValidation.ts)).
 
-You can also ensure the integrity of your handler's responses by utilizing the responseValidation function. 
-However, you might prefer to avoid interruptions in the application flow caused by thrown errors, opting instead for error logging. 
-This can be achieved with the following configuration:
+### Response body validation
+
+The function validates the response body based on a [Joi Schema](https://www.npmjs.com/package/joi).
 
 ```typescript
-export default middleware([
-    responseValidation(schema, {shouldThrowOnValidationError: false})],
-    handler,
-    []
-)
+import { HttpHandler, app } from '@azure/functions';
+import { middleware, responseBodyValidation } from '@senacor/azure-function-middleware';
+import { ObjectSchema } from 'joi';
+import * as Joi from 'joi';
+
+export const httpHandler: HttpHandler = async (req, context) => {
+    context.info('Function called');
+    return {
+        status: 200,
+        jsonBody: {
+            name: 'John Doe',
+        },
+    };
+};
+
+const responseSchema: ObjectSchema = Joi.object({
+    name: Joi.string().required(),
+});
+
+app.http('example-function', {
+    methods: ['GET'],
+    authLevel: 'anonymous',
+    route: 'example',
+    handler: middleware([], httpHandler, [responseBodyValidation(responseSchema)]),
+});
 ```
 
-This approach validates the response against the provided schema but, instead of halting execution 
-when encountering validation errors, it logs the issues for review without throwing an exception.
+By default, an error is logged if the response body does not match the provided schema.
+There is an additional parameter to customize the behavior of `requestQueryParamsValidation` (see [requestQueryParamsValidation.ts](src/validation/requestQueryParamsValidation.ts)).
 
 ### Authorization
 
 The authorization function verifies request parameters against JWT Bearer Tokens, employing customizable extraction functions for flexible security checks.
 
 ```typescript
-export default middleware(functionHandler, [authorization([])]);
+import { HttpHandler, HttpRequestParams, app } from '@azure/functions';
+import { jwtAuthorization, middleware } from '@senacor/azure-function-middleware';
+
+export const handler: HttpHandler = async (req, context) => {
+  context.log(`Function called by ${context.extraInputs.get('jwt')}`);
+  return { status: 204 };
+};
+
+app.http('test-jwt-authorization-function', {
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  route: 'account/{accountId}',
+  handler: middleware<HttpHandler>(
+    [
+      jwtAuthorization([
+        {
+          parameterExtractor: (parameters: HttpRequestParams) => parameters.accountId,
+          jwtExtractor: (jwt: { sub: string }) => jwt.sub,
+        },
+      ]),
+    ],
+    handler,
+    [],
+  ),
+});
 ```
 
 The passed values in the array needs to be defined based on the following structure:  
 
 ```typescript
 export type Rule<T> = {
-    parameterExtractor: (parameters: ContextBindingData) => string;
+    parameterExtractor: (parameters: HttpRequestParams) => string;
     jwtExtractor: (jwt: T) => string;
 };
 ```
 
-### Header authentication
+### Header Authentication
 
 To authenticate requests against a rule, the header could be used. Therefore, the `headerAuthentication` pre-function is available.
 
 ```typescript
-export default middleware(functionHandler, [headerAuthentication()]);
+import { HttpHandler, app } from '@azure/functions';
+import { headerAuthentication, middleware } from '@senacor/azure-function-middleware';
+
+export const httpHandler: HttpHandler = async (req, context) => {
+  context.info('Function called');
+  return { status: 201 };
+};
+
+app.http('example-function', {
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  route: 'example',
+  handler: middleware([headerAuthentication()], httpHandler, []),
+});
 ```
 
 When no parameter is passed to the `headerAuthentication` the header `x-ms-client-principal-id` is checked, if present or not. This header is added to a request by the Azure plattform when e.g. a JWT Token is successfully validated.
 The `x-ms-client-principal-id` and `x-ms-client-principal-name` header could only be set by the Azure plattform (https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-user-identities).
 
 It is also possible to pass a function to validate a specific header, like checking for basic authentication credentials. 
-This could be done in the following manner `headerAuthentication((context, request) => {...})`.
+This could be done in the following manner `headerAuthentication((headers: Headers) => boolean)`.
 
-### Post function execution
-
-Post-execution functions, ideal for tasks like closing database connections, can be defined to run after the main handler execution.
-
-```typescript
-const postFunction = (context: Context, request: HttpRequest): Promise<void> => {
-    context.log("Called after function")
-    return;
-}
-
-export default middleware(functionHandler, [], [postFunction]);
-```
-
-### Logging and Tracing with appInsights
+### Logging and Tracing with Application Insights
 
 To enhance the logging and tracing with appInsights you can wrap your function with the appInsightWrapper. 
 Currently, this will add request parameters and workflow data into the customProperties, which will make your logs more searchable.
 
 Use the `AppInsightForHttpTrigger` for your http-functions:
 ```typescript
-import {AppInsightForHttpTrigger} from "./appInsightsWrapper";
+import { HttpHandler, app } from '@azure/functions';
+import { AppInsightForHttpTrigger, middleware } from '@senacor/azure-function-middleware';
 
-export default middleware([AppInsightForHttpTrigger.setup], handler, [AppInsightForHttpTrigger.finalizeAppInsight])
+export const httpHandler: HttpHandler = async (req, context) => {
+  context.info('Function called');
+
+  return { status: 201 };
+};
+
+app.http('example-function', {
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  route: 'example',
+  handler: middleware([AppInsightForHttpTrigger.setup], httpHandler, [AppInsightForHttpTrigger.finalize]),
+});
 ```
 
-and the `AppInsightForNonHttpTrigger` for functions with different kinds of trigger (e.g. `activityTrigger` or `timerTrigger`).
+and the `AppInsightForNoNHttpTrigger` for functions with different kinds of trigger (e.g. `activityTrigger` or `timerTrigger`).
 
 Per default the request and response bodies of http requests are only logged if the request fails. You can customize this 
 behavior by using `AppInsightForHttpTrigger.finalizeWithConfig(...)` instead of `AppInsightForHttpTrigger.finalizeAppInsight`.

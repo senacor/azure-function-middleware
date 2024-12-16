@@ -28,8 +28,8 @@ export function requestValidation(schema: AnySchema, opts?: ValidationOptions): 
             if (validationResult && validationResult.error) {
                 context.error(
                     `The request did not match the given schema.${
-                        printRequest ? stringify(toBeValidatedContent) : ''
-                    }: ${stringify(validationResult)}`,
+                        printRequest ? JSON.stringify(toBeValidatedContent) : ''
+                    }: ${JSON.stringify(validationResult)}`,
                 );
 
                 if (shouldThrowOnValidationError) {

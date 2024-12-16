@@ -1,7 +1,5 @@
 import { HttpHandler, HttpRequestParams, app } from '@azure/functions';
-import { jwtAuthorization } from '@senacor/azure-function-middleware';
-
-import { middleware } from '../../src';
+import { jwtAuthorization, middleware } from '@senacor/azure-function-middleware';
 
 type JwtClaims = {
     sub: string;
@@ -19,12 +17,12 @@ export const handler: HttpHandler = async (req, context) => {
 app.http('test-jwt-authorization-function', {
     methods: ['POST'],
     authLevel: 'anonymous',
-    route: 'authorization/{id}',
+    route: 'account/{accountId}',
     handler: middleware<HttpHandler>(
         [
             jwtAuthorization([
                 {
-                    parameterExtractor: (parameters: HttpRequestParams) => parameters.id,
+                    parameterExtractor: (parameters: HttpRequestParams) => parameters.accountId,
                     jwtExtractor: (jwt: { sub: string }) => jwt.sub,
                 },
             ]),
