@@ -2,8 +2,8 @@ import { HttpHandler } from '@azure/functions';
 import { HttpRequestParams } from '@azure/functions/types/http';
 import { jwtDecode } from 'jwt-decode';
 
-import { ApplicationError } from './error';
-import { BeforeExecutionFunction } from './middleware';
+import { ApplicationError } from '../error';
+import { BeforeExecutionFunction } from '../middleware';
 
 const evaluate = <T>(rule: Rule<T>, parameters: HttpRequestParams, jwt: T) => {
     const pathParameter = rule.parameterExtractor(parameters);

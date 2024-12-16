@@ -1,8 +1,8 @@
 import { HttpHandler, HttpRequest, InvocationContext } from '@azure/functions';
 
-import { ApplicationError } from './error';
+import { ApplicationError } from '../error';
+import { MiddlewareResult } from '../middleware';
 import sut from './headerAuthentication';
-import { MiddlewareResult } from './middleware';
 
 describe('The header authentication middleware should', () => {
     const context = new InvocationContext();

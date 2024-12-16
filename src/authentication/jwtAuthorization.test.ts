@@ -2,9 +2,9 @@ import { HttpHandler, HttpRequest, InvocationContext } from '@azure/functions';
 import { mockDeep } from 'jest-mock-extended';
 import * as JWTDecoder from 'jwt-decode';
 
-import { ApplicationError } from './error';
+import { ApplicationError } from '../error';
+import { MiddlewareResult } from '../middleware';
 import sut from './jwtAuthorization';
-import { MiddlewareResult } from './middleware';
 
 jest.mock('jwt-decode');
 const jwtMock = JWTDecoder as jest.Mocked<typeof JWTDecoder>;
