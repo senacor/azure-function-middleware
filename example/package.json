@@ -13,6 +13,7 @@
     "license": "MIT",
     "main": "dist/example/src/*.js",
     "devDependencies": {
+        "@types/node": "^20.0.0",
         "typescript": "^4.4.3"
     },
     "dependencies": {

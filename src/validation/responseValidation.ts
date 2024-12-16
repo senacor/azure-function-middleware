@@ -3,7 +3,6 @@ import { AnySchema } from 'joi';
 
 import { ApplicationError } from '../error';
 import { PostExecutionFunction, isErrorResult } from '../middleware';
-import { stringify } from '../util/stringify';
 import { ValidationOptions } from './ValidationOptions';
 
 export function responseValidation(schema: AnySchema, opts?: ValidationOptions): PostExecutionFunction<HttpHandler> {
