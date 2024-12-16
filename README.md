@@ -152,7 +152,7 @@ app.http('example-function', {
 By default, an `ApplicationError` with status 400 will be thrown and the `httpHandler` is not executed if the query params do not match the provided schema.
 There is an additional parameter to customize the behavior of `requestQueryParamsValidation` (see [requestQueryParamsValidation.ts](src/validation/requestQueryParamsValidation.ts)).
 
-### Response body validation
+### Response Body Validation
 
 The function validates the response body based on a [Joi Schema](https://www.npmjs.com/package/joi).
 
