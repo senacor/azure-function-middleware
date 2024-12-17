@@ -32,9 +32,11 @@ app.http('example-function', {
   methods: ['POST'],
   authLevel: 'anonymous',
   route: 'example',
-  handler: middleware([AppInsightForHttpTrigger.setup, requestBodyValidation(requestBodySchema)], httpHandler, [
-    AppInsightForHttpTrigger.finalize,
-  ]),
+  handler: middleware(
+    [AppInsightForHttpTrigger.setup, requestBodyValidation(requestBodySchema)], 
+    httpHandler, 
+    [AppInsightForHttpTrigger.finalize]
+  ),
 });
 
 ```
@@ -185,11 +187,13 @@ app.http('example-function', {
 ```
 
 By default, an error is logged if the response body does not match the provided schema.
-There is an additional parameter to customize the behavior of `requestQueryParamsValidation` (see [requestQueryParamsValidation.ts](src/validation/requestQueryParamsValidation.ts)).
+There is an additional parameter to customize the behavior of `responseBodyValidation` (see [responseBodyValidation.ts](src/validation/responseBodyValidation.ts)).
 
 ### Authorization
 
 The authorization function verifies request parameters against JWT Bearer Tokens, employing customizable extraction functions for flexible security checks.
+
+**IMPORTANT**: The signature of the JWT is not validated. Any well-formed JWT can be decoded (see [jwt-decode](https://www.npmjs.com/package/jwt-decode)).
 
 ```typescript
 import { HttpHandler, HttpRequestParams, app } from '@azure/functions';
