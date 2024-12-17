@@ -1,7 +1,7 @@
 {
-    "name": "azure-function-middleware",
+    "name": "@senacor/azure-function-middleware-example",
     "version": "1.0.0",
-    "description": "Test project to demonstrate the azure-function-middleware",
+    "description": "Example project for @senacor/azure-function-middleware",
     "scripts": {
         "build": "tsc",
         "watch": "tsc -w",
@@ -9,25 +9,15 @@
         "prestart": "npm run clean && npm run build",
         "start": "func start"
     },
-    "keywords": [
-        "azure",
-        "function",
-        "middleware",
-        "example"
-    ],
     "author": "florian.rudisch@gmail.com",
     "license": "MIT",
+    "main": "dist/example/src/*.js",
     "devDependencies": {
-        "@types/jest": "^27.0.2",
-        "jest": "^27.2.1",
-        "npm-run-all": "4.1.5",
-        "ts-jest": "^27.0.5",
+        "@types/node": "^20.0.0",
         "typescript": "^4.4.3"
     },
     "dependencies": {
         "@azure/functions": "4.6.0",
-        "@types/node": "^18.11.18",
         "joi": "^17.13.3"
-    },
-    "main": "dist/example/src/*.js"
+    }
 }

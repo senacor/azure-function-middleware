@@ -1,8 +1,8 @@
 import { HttpHandler } from '@azure/functions';
 import { Headers } from 'undici';
 
-import { ApplicationError } from './error';
-import { BeforeExecutionFunction } from './middleware';
+import { ApplicationError } from '../error';
+import { BeforeExecutionFunction } from '../middleware';
 
 type ValidationFunction = (headers: Headers) => boolean;
 

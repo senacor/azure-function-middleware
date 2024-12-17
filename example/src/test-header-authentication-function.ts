@@ -1,7 +1,6 @@
 import { HttpRequest, InvocationContext, app } from '@azure/functions';
 
-import { middleware } from '../../src';
-import headerAuthentication from '../../src/headerAuthentication';
+import { headerAuthentication, middleware } from '../../src';
 
 export const handler = async (request: HttpRequest, context: InvocationContext) => {
     context.info('Function called');
