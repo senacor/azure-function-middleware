@@ -5,7 +5,9 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "files": [
-        "/dist"
+        "/dist",
+        "LICENSE",
+        "README.md"
     ],
     "scripts": {
         "test": "jest",
@@ -24,6 +26,13 @@
     ],
     "author": "florian.rudisch@senacor.com",
     "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/senacor/azure-function-middleware.git"
+    },
+    "bugs": {
+        "url": "https://github.com/senacor/azure-function-middleware/issues"
+    },
     "devDependencies": {
         "@trivago/prettier-plugin-sort-imports": "^4.2.0",
         "@types/jest": "^29.5.12",
