@@ -9,6 +9,7 @@ export const errorHandler = (
     context: InvocationContext,
     opts?: Options,
     // TODO: Can we remove any?
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): any => {
     context.error(error);
 
