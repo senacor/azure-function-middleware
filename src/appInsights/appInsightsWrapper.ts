@@ -172,8 +172,8 @@ const finalizeAppInsightForNonHttpTriggerWithConfig: FinalizeAppInsightWithConfi
     req,
     context,
     result,
-    logBodyBehavior: LogBehavior = 'on_error',
-    bodySanitizer: LogDataSanitizer = noOpLogDataSanitizer,
+    logBodyBehavior: LogBehavior = 'on_error', // eslint-disable-line @typescript-eslint/no-unused-vars
+    bodySanitizer: LogDataSanitizer = noOpLogDataSanitizer, // eslint-disable-line @typescript-eslint/no-unused-vars
 ): Promise<void> => {
     if (isDisabled) {
         return;
