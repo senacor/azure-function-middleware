@@ -1,10 +1,10 @@
 module.exports = {
     semi: true,
-    trailingComma: "all",
+    trailingComma: 'all',
     singleQuote: true,
     printWidth: 120,
     tabWidth: 4,
-    importOrder: ["^[./]"],
+    importOrder: ['^[./]'],
     importOrderSeparation: true,
-    importOrderSortSpecifiers: true
+    importOrderSortSpecifiers: true,
 };
