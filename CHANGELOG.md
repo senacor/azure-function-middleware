@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 3.2.1 (03.02.2025)
+* Change `@azure/functions` to peer dependency
+
 ## 3.2.0 (16.12.2024)
 * Added new validation methods: `requestBodyValidation`, `requestQueryParamsValidation` and `responseBodyValidation`
 * Updated documentation and example project
