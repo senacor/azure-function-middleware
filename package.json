@@ -1,6 +1,6 @@
 {
     "name": "@senacor/azure-function-middleware",
-    "version": "3.2.1",
+    "version": "3.2.2",
     "description": "Middleware for azure functions to handle authentication, authorization, error handling and logging",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -28,7 +28,7 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/senacor/azure-function-middleware.git"
+        "url": "git+https://github.com/senacor/azure-function-middleware.git"
     },
     "bugs": {
         "url": "https://github.com/senacor/azure-function-middleware/issues"

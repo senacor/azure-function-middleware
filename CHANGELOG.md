@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 3.2.2 (16.04.2025)
+* Fix logging in `requestBodyValidation`
+
 ## 3.2.1 (03.02.2025)
 * Change `@azure/functions` to peer dependency
 

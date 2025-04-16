@@ -37,7 +37,7 @@ export function requestBodyValidation(
             context.error('Request body did not match the given schema:', JSON.stringify(validationResult.error));
 
             if (printInputOnValidationError) {
-                context.info('Invalid request body:', JSON.stringify(req.query));
+                context.info('Invalid request body:', JSON.stringify(requestBody));
             }
 
             if (shouldThrowOnValidationError) {
