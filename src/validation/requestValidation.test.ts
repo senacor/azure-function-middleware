@@ -65,4 +65,15 @@ describe('The requestValidation should', () => {
             })(createRequest({ example: { fail: 'test-body' } }), new InvocationContext(), initialMiddlewareResult),
         ).rejects.toThrow(new ApplicationError('Validation Error', 400));
     });
+
+    // test for Joi validation options
+    test.only('successfully validate with Joi validation options', async () => {
+        const schemaWithOptions = exampleSchema.options({ allowUnknown: true });
+        const result = await requestValidation(schemaWithOptions)(
+            createRequest({ example: 'test-body', extraField: 'allowed' }),
+            new InvocationContext(),
+            initialMiddlewareResult,
+        );
+        expect(result).toBeUndefined();
+    });
 });

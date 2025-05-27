@@ -23,7 +23,7 @@ export function requestValidation(schema: AnySchema, opts?: ValidationOptions): 
                 (await clonedRequest.json());
             const shouldThrowOnValidationError = opts?.shouldThrowOnValidationError ?? true;
 
-            const validationResult = schema.validate(toBeValidatedContent);
+            const validationResult = schema.validate(toBeValidatedContent, opts ?? {});
             if (validationResult && validationResult.error) {
                 context.error(
                     `The request did not match the given schema.${
