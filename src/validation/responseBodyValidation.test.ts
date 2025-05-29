@@ -33,6 +33,20 @@ describe('responseBodyValidation should', () => {
         ).resolves.toBeUndefined();
     });
 
+    test('validate response body with joi validation options', async () => {
+        const validator = responseBodyValidation(responseSchemas, {
+            shouldThrowOnValidationError: true,
+            joiValidationOptions: { allowUnknown: true },
+        });
+
+        await expect(
+            validator(createRequest(), context, {
+                $failed: false,
+                $result: { status: 200, jsonBody: { name: 'John Doe', unknownValue: 'yes' } },
+            }),
+        ).resolves.toBeUndefined();
+    });
+
     test('throw error if the response body does not match the given schema and shouldThrowOnValidationError = true', async () => {
         const validator = responseBodyValidation(responseSchemas, { shouldThrowOnValidationError: true });
 
