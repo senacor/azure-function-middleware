@@ -14,8 +14,8 @@ describe('The header authentication middleware should', () => {
         jest.resetAllMocks();
     });
 
-    test('successfully resolves when the default "x-ms-client-principal" header is present', () => {
-        const res = sut()(
+    test('successfully resolves when the default "x-ms-client-principal" header is present', async () => {
+        const res = await sut()(
             new HttpRequest({
                 url: 'http://localhost:8080',
                 method: 'GET',
@@ -28,8 +28,8 @@ describe('The header authentication middleware should', () => {
         expect(res).toBeUndefined();
     });
 
-    test('successfully resolves when the passed header validation function returns true', () => {
-        const res = sut({ validateUsingHeaderFn: () => true })(
+    test('successfully resolves when the passed header validation function returns true', async () => {
+        const res = await sut({ validateUsingHeaderFn: () => true })(
             new HttpRequest({
                 url: 'http://localhost:8080',
                 method: 'GET',
@@ -40,8 +40,20 @@ describe('The header authentication middleware should', () => {
         expect(res).toBeUndefined();
     });
 
-    test('fail caused by missing default "x-ms-client-principal" header', () => {
-        expect(() =>
+    test('successfully resolves when the passed async header validation function returns true', async () => {
+        const res = await sut({ validateUsingHeaderFn: async () => true })(
+            new HttpRequest({
+                url: 'http://localhost:8080',
+                method: 'GET',
+            }),
+            context,
+            initialMiddlewareResult,
+        );
+        expect(res).toBeUndefined();
+    });
+
+    test('fail caused by missing default "x-ms-client-principal" header', async () => {
+        await expect(
             sut()(
                 new HttpRequest({
                     url: 'http://localhost:8080',
@@ -50,11 +62,11 @@ describe('The header authentication middleware should', () => {
                 context,
                 initialMiddlewareResult,
             ),
-        ).toThrow(new ApplicationError('Authentication error', 403, 'No sophisticated credentials provided'));
+        ).rejects.toThrow(new ApplicationError('Authentication error', 403, 'No sophisticated credentials provided'));
     });
 
-    test('fail caused by missing default "x-ms-client-principal" header and using the provided error body', () => {
-        expect(() =>
+    test('fail caused by missing default "x-ms-client-principal" header and using the provided error body', async () => {
+        await expect(
             sut({ errorResponseBody: { error: 'Please authenticate properly' } })(
                 new HttpRequest({
                     url: 'http://localhost:8080',
@@ -63,11 +75,11 @@ describe('The header authentication middleware should', () => {
                 context,
                 initialMiddlewareResult,
             ),
-        ).toThrow(new ApplicationError('Authentication error', 403, { error: 'Please authenticate properly' }));
+        ).rejects.toThrow(new ApplicationError('Authentication error', 403, { error: 'Please authenticate properly' }));
     });
 
-    test('fail caused by passed header validation function returns false', () => {
-        expect(() =>
+    test('fail caused by passed header validation function returns false', async () => {
+        await expect(
             sut({ validateUsingHeaderFn: () => false })(
                 new HttpRequest({
                     url: 'http://localhost:8080',
@@ -76,11 +88,11 @@ describe('The header authentication middleware should', () => {
                 context,
                 initialMiddlewareResult,
             ),
-        ).toThrow(new ApplicationError('Authentication error', 403, 'No sophisticated credentials provided'));
+        ).rejects.toThrow(new ApplicationError('Authentication error', 403, 'No sophisticated credentials provided'));
     });
 
-    test('fail caused by passed header validation function returns false and use the provided error body', () => {
-        expect(() =>
+    test('fail caused by passed header validation function returns false and use the provided error body', async () => {
+        await expect(() =>
             sut({ validateUsingHeaderFn: () => false, errorResponseBody: { error: 'Please authenticate properly' } })(
                 new HttpRequest({
                     url: 'http://localhost:8080',
@@ -89,11 +101,11 @@ describe('The header authentication middleware should', () => {
                 context,
                 initialMiddlewareResult,
             ),
-        ).toThrow(new ApplicationError('Authentication error', 403, { error: 'Please authenticate properly' }));
+        ).rejects.toThrow(new ApplicationError('Authentication error', 403, { error: 'Please authenticate properly' }));
     });
 
-    test('do nothing if the passed result indicates an error in a prev function and skipIfResultIsFaulty is true', () => {
-        const res = sut({
+    test('do nothing if the passed result indicates an error in a prev function and skipIfResultIsFaulty is true', async () => {
+        const res = await sut({
             validateUsingHeaderFn: () => false,
             errorResponseBody: { error: 'Please authenticate properly' },
             skipIfResultIsFaulty: true,
@@ -111,8 +123,8 @@ describe('The header authentication middleware should', () => {
         expect(res).toBeUndefined();
     });
 
-    test('execute the function even if the passed result indicates an error in a prev function, but skipIfResultIsFaulty is false', () => {
-        expect(() =>
+    test('execute the function even if the passed result indicates an error in a prev function, but skipIfResultIsFaulty is false', async () => {
+        await expect(
             sut({
                 validateUsingHeaderFn: () => false,
                 errorResponseBody: { error: 'Please authenticate properly' },
@@ -128,6 +140,6 @@ describe('The header authentication middleware should', () => {
                     $error: Error(),
                 },
             ),
-        ).toThrow(new ApplicationError('Authentication error', 403, { error: 'Please authenticate properly' }));
+        ).rejects.toThrow(new ApplicationError('Authentication error', 403, { error: 'Please authenticate properly' }));
     });
 });
