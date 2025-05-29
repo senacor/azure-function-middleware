@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 3.5.0 (29.05.2025)
+* Add Joi `ValidationOptions as optional parameter to the request and response validation functions (thank you, @adityamatt, for the suggestion)
+
 ## 3.4.0 (29.05.2025)
 * Change return type of `validateUsingHeaderFn` from `headerAuthentication` to `boolean | Promise<boolean>`
 

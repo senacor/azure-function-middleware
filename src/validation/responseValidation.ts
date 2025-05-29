@@ -15,7 +15,7 @@ export function responseValidation(schema: AnySchema, opts?: ValidationOptions):
             (isErrorResult<ReturnType<HttpHandler>>(result) ? result.$error : result.$result);
         const shouldThrowOnValidationError = opts?.shouldThrowOnValidationError ?? true;
 
-        const validationResult = schema.validate(toBeValidatedContent);
+        const validationResult = schema.validate(toBeValidatedContent, opts?.joiValidationOptions);
         if (validationResult && validationResult.error) {
             context.error(
                 `The response did not match the given schema.${

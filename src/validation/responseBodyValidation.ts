@@ -1,5 +1,5 @@
 import { HttpHandler, HttpResponseInit } from '@azure/functions';
-import { AnySchema } from 'joi';
+import { AnySchema, ValidationOptions } from 'joi';
 
 import { ApplicationError } from '../error';
 import { BeforeExecutionFunction, isErrorResult } from '../middleware';
@@ -7,6 +7,7 @@ import { BeforeExecutionFunction, isErrorResult } from '../middleware';
 export type ResponseBodyValidationOptions = {
     shouldThrowOnValidationError?: boolean;
     printInputOnValidationError?: boolean;
+    joiValidationOptions?: ValidationOptions;
 };
 
 export function responseBodyValidation(
@@ -36,7 +37,7 @@ export function responseBodyValidation(
             return;
         }
 
-        const validationResult = schemas[responseStatus].validate(httpResponse.jsonBody);
+        const validationResult = schemas[responseStatus].validate(httpResponse.jsonBody, options?.joiValidationOptions);
 
         if (validationResult.error) {
             context.error('Response body did not match the given schema:', JSON.stringify(validationResult.error));

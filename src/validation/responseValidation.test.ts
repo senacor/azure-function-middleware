@@ -43,6 +43,18 @@ describe('The responseValidation should', () => {
         expect(result).toBeUndefined();
     });
 
+    test('successfully validate response with joi validation options', () => {
+        initialMiddlewareResult.$result = { status: 201, jsonBody: { example: 'test-body', unknownValue: 'yes' } };
+
+        const result = responseValidation(exampleSchema, { joiValidationOptions: { allowUnknown: true } })(
+            requestMock,
+            new InvocationContext(),
+            initialMiddlewareResult,
+        );
+
+        expect(result).toBeUndefined();
+    });
+
     test('throw, if the response is invalid', () => {
         initialMiddlewareResult.$result = { status: 201, jsonBody: { fail: 'this-fails' } };
 
