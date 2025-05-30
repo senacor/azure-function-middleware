@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 3.3.0 (29.05.2025)
+* Add Joi `ValidationOptions as optional parameter to the request and response validation functions (thank you, @adityamatt, for the suggestion)
+
 ## 3.2.2 (16.04.2025)
 * Fix logging in `requestBodyValidation`
 

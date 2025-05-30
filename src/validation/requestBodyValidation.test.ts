@@ -16,6 +16,17 @@ describe('requestBodyValidation should', () => {
         ).resolves.toBeUndefined();
     });
 
+    test('successfully validate request body with joi validation options', async () => {
+        const validator = requestBodyValidation(exampleSchema, { joiValidationOptions: { allowUnknown: true } });
+
+        await expect(
+            validator(createRequest({ name: 'John Doe', unknownValue: 'yes' }), context, {
+                $failed: false,
+                $result: undefined,
+            }),
+        ).resolves.toBeUndefined();
+    });
+
     test('throw error if the request body does not match the given schema', async () => {
         const validator = requestBodyValidation(exampleSchema);
 

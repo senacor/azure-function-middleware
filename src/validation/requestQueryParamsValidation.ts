@@ -1,5 +1,5 @@
 import { HttpHandler } from '@azure/functions';
-import { AnySchema } from 'joi';
+import { AnySchema, ValidationOptions } from 'joi';
 
 import { ApplicationError } from '../error';
 import { BeforeExecutionFunction, isErrorResult } from '../middleware';
@@ -8,6 +8,7 @@ export type RequestQueryParamsValidationOptions = {
     shouldThrowOnValidationError?: boolean;
     transformErrorMessage?: (message: string) => unknown;
     printInputOnValidationError?: boolean;
+    joiValidationOptions?: ValidationOptions;
 };
 
 export function requestQueryParamsValidation(
@@ -24,7 +25,7 @@ export function requestQueryParamsValidation(
             return;
         }
 
-        const validationResult = schema.validate(Object.fromEntries(req.query));
+        const validationResult = schema.validate(Object.fromEntries(req.query), options?.joiValidationOptions);
 
         if (validationResult.error) {
             context.error(
