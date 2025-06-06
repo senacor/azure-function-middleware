@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 3.3.0 (25.04.2025)
+* Disable logging of url query parameters for http requests
+
 ## 3.2.2 (16.04.2025)
 * Fix logging in `requestBodyValidation`
 

@@ -156,7 +156,7 @@ const finalizeAppInsightForHttpTriggerWithConfig: FinalizeAppInsightWithConfig<H
         resultCode: result.status ?? '0',
         // important so that requests with a non-OK response show up as failed
         success: result.status ? result.status < 400 : true,
-        url: req.url,
+        url: req.url.includes('?') ? req.url.split('?')[0] : req.url,
         duration: 0,
         id: correlationContext?.operation?.id ?? 'UNDEFINED',
     });
