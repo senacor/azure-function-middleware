@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 3.3.0 (29.05.2025)
+## 3.4.0 (29.05.2025)
 * Change return type of `validateUsingHeaderFn` from `headerAuthentication` to `boolean | Promise<boolean>`
 
 ## 3.3.0 (25.04.2025)
