@@ -4,7 +4,7 @@ import { Headers } from 'undici';
 import { ApplicationError } from '../error';
 import { BeforeExecutionFunction } from '../middleware';
 
-type ValidationFunction = (headers: Headers) => boolean;
+type ValidationFunction = (headers: Headers) => boolean | Promise<boolean>;
 
 const defaultHeaderValidation: ValidationFunction = (headers) => !!headers.get('x-ms-client-principal-id');
 const defaultErrorResponseBody = 'No sophisticated credentials provided';
@@ -20,14 +20,14 @@ export default (opts?: Partial<HeaderAuthenticationOptions>): BeforeExecutionFun
     const errorResponseBody = opts?.errorResponseBody ?? defaultErrorResponseBody;
     const skipIfResultIsFaulty = opts?.skipIfResultIsFaulty ?? true;
 
-    return (req, context, result) => {
+    return async (req, context, result) => {
         if (skipIfResultIsFaulty && result.$failed) {
             context.info('Skipping header-authentication because the result is faulty.');
             return;
         }
 
         context.info('Executing header authentication.');
-        const validationResult = validateUsingHeaderFn(req.headers);
+        const validationResult = await validateUsingHeaderFn(req.headers);
         if (validationResult) {
             context.info('Header authentication was successful.');
             return;
