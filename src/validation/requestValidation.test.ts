@@ -25,6 +25,18 @@ describe('The requestValidation should', () => {
         expect(result).toBeUndefined();
     });
 
+    test('successfully validate request with joi validation options', async () => {
+        const result = await requestValidation(exampleSchema, {
+            joiValidationOptions: { allowUnknown: true },
+        })(
+            createRequest({ example: 'test-body', unknownValue: 'yes' }),
+            new InvocationContext(),
+            initialMiddlewareResult,
+        );
+
+        expect(result).toBeUndefined();
+    });
+
     test('successfully validate the object extracted through the passed function', async () => {
         const result = await requestValidation(exampleSchema, {
             extractValidationContentFromRequest: () => ({

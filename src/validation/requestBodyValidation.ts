@@ -1,5 +1,5 @@
 import { HttpHandler } from '@azure/functions';
-import { AnySchema } from 'joi';
+import { AnySchema, ValidationOptions } from 'joi';
 
 import { ApplicationError } from '../error';
 import { BeforeExecutionFunction, isErrorResult } from '../middleware';
@@ -8,6 +8,7 @@ export type RequestBodyValidationOptions = {
     shouldThrowOnValidationError?: boolean;
     transformErrorMessage?: (message: string) => unknown;
     printInputOnValidationError?: boolean;
+    joiValidationOptions?: ValidationOptions;
 };
 
 export function requestBodyValidation(
@@ -31,7 +32,7 @@ export function requestBodyValidation(
                 context.error('Error during request body validation:', error);
                 throw new ApplicationError('Failed to get request body for validation', 500);
             });
-        const validationResult = schema.validate(requestBody);
+        const validationResult = schema.validate(requestBody, options?.joiValidationOptions);
 
         if (validationResult.error) {
             context.error('Request body did not match the given schema:', JSON.stringify(validationResult.error));

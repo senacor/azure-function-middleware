@@ -19,6 +19,14 @@ describe('requestQueryParamsValidation should', () => {
         },
     );
 
+    test('successfully validate query params with joi validation options', async () => {
+        const validator = requestQueryParamsValidation(exampleSchema, { joiValidationOptions: { allowUnknown: true } });
+
+        await expect(
+            validator(createRequest({ unknownValue: 'yes' }), context, { $failed: false, $result: undefined }),
+        ).resolves.toBeUndefined();
+    });
+
     test('throw error if the query params do not match the given schema', async () => {
         const validator = requestQueryParamsValidation(exampleSchema);
 
