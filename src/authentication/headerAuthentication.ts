@@ -4,7 +4,7 @@ import { Headers } from 'undici';
 import { ApplicationError } from '../error';
 import { BeforeExecutionFunction } from '../middleware';
 
-type ValidationFunction = (headers: Headers) => boolean | Promise<boolean>;
+export type ValidationFunction = (headers: Headers) => boolean | Promise<boolean>;
 
 const defaultHeaderValidation: ValidationFunction = (headers) => !!headers.get('x-ms-client-principal-id');
 const defaultErrorResponseBody = 'No sophisticated credentials provided';

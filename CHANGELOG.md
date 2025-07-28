@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 3.5.1 (28.07.2025)
+* Exported `type ValidationFunction`
+
 ## 3.5.0 (29.05.2025)
 * Add Joi `ValidationOptions as optional parameter to the request and response validation functions (thank you, @adityamatt, for the suggestion)
 
