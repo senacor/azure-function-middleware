@@ -15,7 +15,7 @@ jobs:
         FUNCTIONS_WORKER_RUNTIME: node
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: install global dependencies
         shell: bash
         run: | 
