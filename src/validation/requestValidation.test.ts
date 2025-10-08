@@ -54,7 +54,7 @@ describe('The requestValidation should', () => {
                 new InvocationContext(),
                 initialMiddlewareResult,
             ),
-        ).rejects.toThrowError(new ApplicationError('Validation Error', 400));
+        ).rejects.toThrow(new ApplicationError('Validation Error', 400));
     });
 
     test('do not throw an error, even when the validation was not successful, if throwing is disabled', async () => {
