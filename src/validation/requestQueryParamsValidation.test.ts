@@ -70,6 +70,30 @@ describe('requestQueryParamsValidation should', () => {
             validator(createRequest({ status: 'invalid' }), context, { $failed: false, $result: undefined }),
         ).resolves.toBeUndefined();
     });
+
+    test('ignore code query param per default', async () => {
+        const validator = requestQueryParamsValidation(exampleSchema);
+
+        await expect(
+            validator(createRequest({ status: 'active', code: 'secret-function-key' }), context, {
+                $failed: false,
+                $result: undefined,
+            }),
+        ).resolves.toBeUndefined();
+    });
+
+    test('throw error if code query param is present and excludeCodeFromValidation = false', async () => {
+        const validator = requestQueryParamsValidation(exampleSchema, {
+            excludeCodeFromValidation: false,
+        });
+
+        await expect(() =>
+            validator(createRequest({ status: 'active', code: 'secret-function-key' }), context, {
+                $failed: false,
+                $result: undefined,
+            }),
+        ).rejects.toThrow('Request query params validation error');
+    });
 });
 
 function createRequest(query?: Record<string, string>) {

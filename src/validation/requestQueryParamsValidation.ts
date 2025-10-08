@@ -1,4 +1,4 @@
-import { HttpHandler } from '@azure/functions';
+import { HttpHandler, HttpRequest } from '@azure/functions';
 import { AnySchema, ValidationOptions } from 'joi';
 
 import { ApplicationError } from '../error';
@@ -9,6 +9,7 @@ export type RequestQueryParamsValidationOptions = {
     transformErrorMessage?: (message: string) => unknown;
     printInputOnValidationError?: boolean;
     joiValidationOptions?: ValidationOptions;
+    excludeCodeFromValidation?: boolean; // function key can be sent via code param
 };
 
 export function requestQueryParamsValidation(
@@ -18,6 +19,7 @@ export function requestQueryParamsValidation(
     const shouldThrowOnValidationError = options?.shouldThrowOnValidationError ?? true;
     const transformErrorMessage = options?.transformErrorMessage ?? ((message: string) => ({ message }));
     const printInputOnValidationError = options?.printInputOnValidationError ?? true;
+    const excludeCodeFromValidation = options?.excludeCodeFromValidation ?? true;
 
     return async (req, context, result) => {
         if (isErrorResult<ReturnType<HttpHandler>>(result)) {
@@ -25,7 +27,10 @@ export function requestQueryParamsValidation(
             return;
         }
 
-        const validationResult = schema.validate(Object.fromEntries(req.query), options?.joiValidationOptions);
+        const validationResult = schema.validate(
+            getQueryParams(req, excludeCodeFromValidation),
+            options?.joiValidationOptions,
+        );
 
         if (validationResult.error) {
             context.error(
@@ -48,4 +53,14 @@ export function requestQueryParamsValidation(
             context.info('Request query params are valid');
         }
     };
+}
+
+function getQueryParams(req: HttpRequest, excludeCodeFromValidation: boolean) {
+    if (excludeCodeFromValidation) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { code, ...queryParamsWithoutCode } = Object.fromEntries(req.query);
+        return queryParamsWithoutCode;
+    }
+
+    return Object.fromEntries(req.query);
 }
