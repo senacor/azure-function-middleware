@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 4.0.0 (08.10.2025)
+
+- Upgrade to Joi v18 (see https://github.com/hapijs/joi/issues/2926)
+- Exclude `code` query parameter by default from `requestQueryParamsValidation` to prevent unintended leakage of function keys
+
 ## 3.5.1 (28.07.2025)
 
 - Exported `type ValidationFunction` (thank you, @adityamatt, for the PR)
