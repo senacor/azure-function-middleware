@@ -56,6 +56,6 @@
         "@azure/functions": "^4.0.0",
         "applicationinsights": "^2.5.0",
         "durable-functions": "^3.1.0",
-        "joi": "^17.9.1"
+        "joi": "^18.0.1"
     }
 }
