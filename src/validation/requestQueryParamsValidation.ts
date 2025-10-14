@@ -9,7 +9,7 @@ export type RequestQueryParamsValidationOptions = {
     transformErrorMessage?: (message: string) => unknown;
     printInputOnValidationError?: boolean;
     joiValidationOptions?: ValidationOptions;
-    excludeCodeFromValidation?: boolean; // function key can be sent via code param
+    queryParamsToExcludeFromValidation?: string[];
 };
 
 export function requestQueryParamsValidation(
@@ -19,7 +19,7 @@ export function requestQueryParamsValidation(
     const shouldThrowOnValidationError = options?.shouldThrowOnValidationError ?? true;
     const transformErrorMessage = options?.transformErrorMessage ?? ((message: string) => ({ message }));
     const printInputOnValidationError = options?.printInputOnValidationError ?? true;
-    const excludeCodeFromValidation = options?.excludeCodeFromValidation ?? true;
+    const queryParamsToExcludeFromValidation = options?.queryParamsToExcludeFromValidation ?? ['code']; // function key can be sent via code param
 
     return async (req, context, result) => {
         if (isErrorResult<ReturnType<HttpHandler>>(result)) {
@@ -28,7 +28,7 @@ export function requestQueryParamsValidation(
         }
 
         const validationResult = schema.validate(
-            getQueryParams(req, excludeCodeFromValidation),
+            getQueryParams(req, queryParamsToExcludeFromValidation),
             options?.joiValidationOptions,
         );
 
@@ -55,12 +55,12 @@ export function requestQueryParamsValidation(
     };
 }
 
-function getQueryParams(req: HttpRequest, excludeCodeFromValidation: boolean) {
-    if (excludeCodeFromValidation) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { code, ...queryParamsWithoutCode } = Object.fromEntries(req.query);
-        return queryParamsWithoutCode;
-    }
+function getQueryParams(req: HttpRequest, queryParamsToExcludeFromValidation: string[]) {
+    const queryParams = { ...Object.fromEntries(req.query) };
 
-    return Object.fromEntries(req.query);
+    queryParamsToExcludeFromValidation.forEach((key) => {
+        delete queryParams[key];
+    });
+
+    return queryParams;
 }

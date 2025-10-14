@@ -84,7 +84,7 @@ describe('requestQueryParamsValidation should', () => {
 
     test('throw error if code query param is present and excludeCodeFromValidation = false', async () => {
         const validator = requestQueryParamsValidation(exampleSchema, {
-            excludeCodeFromValidation: false,
+            queryParamsToExcludeFromValidation: [],
         });
 
         await expect(() =>
