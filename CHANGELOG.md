@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 4.0.1 (06.11.2025)
+- Fix missing removal of TelemetryClient to prevent memory leaks
+
 ## 4.0.0 (08.10.2025)
 
 - Upgrade to Joi v18 (see https://github.com/hapijs/joi/issues/2926)

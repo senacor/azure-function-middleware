@@ -135,27 +135,24 @@ const finalizeAppInsightForHttpTriggerWithConfig: FinalizeAppInsightWithConfig<H
         context.warn("res is empty and properly shouldn't be");
     }
 
-    if (isErrorResult(res)) {
-        return;
+    if (!isErrorResult(res)) {
+        const result = res.$result;
+
+        if (result == undefined) {
+            context.warn("res is empty and probably shouldn't be");
+        } else if (shouldLog(logBodyBehavior, result.status ? result.status >= 400 : true)) {
+            context.log('Request body:', result.body ? bodySanitizer(result.body) : 'NO_REQ_BODY');
+            context.log('Response body:', result.body ? bodySanitizer(result.body) : 'NO_RES_BODY');
+        }
     }
 
-    const result = res.$result;
-
-    if (result == undefined) {
-        context.warn("res is empty and properly shouldn't be");
-        return;
-    }
-
-    if (shouldLog(logBodyBehavior, result.status ? result.status >= 400 : true)) {
-        context.log('Request body:', result.body ? bodySanitizer(result.body) : 'NO_REQ_BODY');
-        context.log('Response body:', result.body ? bodySanitizer(result.body) : 'NO_RES_BODY');
-    }
+    const resultCode = !isErrorResult(res) ? res.$result?.status : undefined;
 
     telemetryClient.trackRequest({
         name: context.functionName,
-        resultCode: result.status ?? '0',
+        resultCode: resultCode ?? '0',
         // important so that requests with a non-OK response show up as failed
-        success: result.status ? result.status < 400 : true,
+        success: resultCode ? resultCode < 400 : false,
         url: req.url.includes('?') ? req.url.split('?')[0] : req.url,
         duration: 0,
         id: correlationContext?.operation?.id ?? 'UNDEFINED',
