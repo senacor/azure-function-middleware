@@ -12,11 +12,11 @@
     "license": "MIT",
     "main": "dist/example/src/*.js",
     "devDependencies": {
-        "@types/node": "^20.0.0",
-        "typescript": "^4.4.3"
+        "@types/node": "20.19.24",
+        "typescript": "5.9.3"
     },
     "dependencies": {
         "@azure/functions": "4.6.0",
-        "joi": "^17.13.3"
+        "joi": "18.0.1"
     }
 }
