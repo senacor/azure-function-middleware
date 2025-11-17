@@ -12,7 +12,6 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-
-ignore:
-  - dependency-name: "@types/node"
-    versions: [ ">=21.0.0" ]
+    ignore:
+      - dependency-name: "@types/node"
+        versions: [ ">=21.0.0" ]
