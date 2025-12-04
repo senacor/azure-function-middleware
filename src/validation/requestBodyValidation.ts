@@ -30,8 +30,16 @@ export function requestBodyValidation(
             .json()
             .catch((error) => {
                 context.error('Error during request body validation:', error);
-                throw new ApplicationError('Failed to get request body for validation', 500);
+
+                if (error instanceof SyntaxError) {
+                    throw new ApplicationError('Request body contains invalid json', 400, {
+                        message: 'Request body contains invalid json',
+                    });
+                }
+
+                throw new ApplicationError('Internal server error', 500, { message: 'Internal server error' });
             });
+
         const validationResult = schema.validate(requestBody, options?.joiValidationOptions);
 
         if (validationResult.error) {

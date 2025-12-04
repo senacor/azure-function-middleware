@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 4.0.2 (04.12.2025)
+- `requestBodyValidation` returns now 400 error response if request body contains invalid json
+
 ## 4.0.1 (06.11.2025)
 - Fix missing removal of TelemetryClient to prevent memory leaks
 
