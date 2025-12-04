@@ -63,6 +63,26 @@ describe('requestBodyValidation should', () => {
         expect.assertions(3);
     });
 
+    test('throw error if request body contains invalid json', async () => {
+        const validator = requestBodyValidation(exampleSchema);
+
+        try {
+            await validator(
+                new HttpRequest({ url: 'http://localhost:8080', method: 'POST', body: { string: 'invalid json' } }),
+                context,
+                { $failed: false, $result: undefined },
+            );
+        } catch (err) {
+            if (err instanceof ApplicationError) {
+                expect(err.message).toEqual('Request body contains invalid json');
+                expect(err.status).toEqual(400);
+                expect(err.body.message).toEqual('Request body contains invalid json');
+            }
+        }
+
+        expect.assertions(3);
+    });
+
     test('throw no error if the request body does not match the given schema and shouldThrowOnValidationError = false', async () => {
         const validator = requestBodyValidation(exampleSchema, { shouldThrowOnValidationError: false });
 
