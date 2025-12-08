@@ -1,7 +1,5 @@
 import { HttpRequest, InvocationContext } from '@azure/functions';
 import Joi from 'joi';
-
-import { ApplicationError } from '../error';
 import { requestBodyValidation } from './requestBodyValidation';
 
 describe('requestBodyValidation should', () => {
@@ -30,19 +28,13 @@ describe('requestBodyValidation should', () => {
     test('throw error if the request body does not match the given schema', async () => {
         const validator = requestBodyValidation(exampleSchema);
 
-        try {
-            await validator(createRequest({ id: 42 }), context, { $failed: false, $result: undefined });
-        } catch (err) {
-            if (err instanceof ApplicationError) {
-                expect(err.message).toEqual('Request body validation error');
-                expect(err.status).toEqual(400);
-                expect(err.body).toEqual({
-                    message: '"name" is required',
-                });
-            }
-        }
-
-        expect.assertions(3);
+        await expect(
+            validator(createRequest({ id: 42 }), context, { $failed: false, $result: undefined }),
+        ).rejects.toMatchObject({
+            message: 'Request body validation error',
+            status: 400,
+            body: { message: '"name" is required' },
+        });
     });
 
     test('throw error if the request body does not match the given schema and transform error message correctly', async () => {
@@ -50,17 +42,33 @@ describe('requestBodyValidation should', () => {
             transformErrorMessage: () => `Custom error message`,
         });
 
-        try {
-            await validator(createRequest({ id: 42 }), context, { $failed: false, $result: undefined });
-        } catch (err) {
-            if (err instanceof ApplicationError) {
-                expect(err.message).toEqual('Request body validation error');
-                expect(err.status).toEqual(400);
-                expect(err.body).toEqual('Custom error message');
-            }
-        }
+        await expect(
+            validator(createRequest({ id: 42 }), context, { $failed: false, $result: undefined }),
+        ).rejects.toMatchObject({
+            message: 'Request body validation error',
+            status: 400,
+            body: 'Custom error message',
+        });
+    });
 
-        expect.assertions(3);
+    test('throw error if request body contains invalid json', async () => {
+        const validator = requestBodyValidation(exampleSchema);
+
+        await expect(
+            validator(
+                new HttpRequest({
+                    url: 'http://localhost:8080',
+                    method: 'POST',
+                    body: { string: 'invalid json' },
+                }),
+                context,
+                { $failed: false, $result: undefined },
+            ),
+        ).rejects.toMatchObject({
+            message: 'Request body contains invalid json',
+            status: 400,
+            body: { message: 'Request body contains invalid json' },
+        });
     });
 
     test('throw no error if the request body does not match the given schema and shouldThrowOnValidationError = false', async () => {

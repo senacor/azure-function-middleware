@@ -1,7 +1,6 @@
 import { HttpRequest, InvocationContext } from '@azure/functions';
 import Joi from 'joi';
 
-import { ApplicationError } from '../error';
 import { responseBodyValidation } from './responseBodyValidation';
 
 describe('responseBodyValidation should', () => {
@@ -50,39 +49,26 @@ describe('responseBodyValidation should', () => {
     test('throw error if the response body does not match the given schema and shouldThrowOnValidationError = true', async () => {
         const validator = responseBodyValidation(responseSchemas, { shouldThrowOnValidationError: true });
 
-        try {
-            await validator(createRequest(), context, {
+        await expect(
+            validator(createRequest(), context, {
                 $failed: false,
                 $result: { status: 200, jsonBody: { id: 42 } },
-            });
-        } catch (err) {
-            if (err instanceof ApplicationError) {
-                expect(err.message).toEqual('Response body validation error');
-                expect(err.status).toEqual(500);
-                expect(err.body).toBeUndefined();
-            }
-        }
-
-        expect.assertions(3);
+            }),
+        ).rejects.toMatchObject({ message: 'Response body validation error', status: 500 });
     });
 
     test('throw error if there is no schema for the response status and shouldThrowOnValidationError = true', async () => {
         const validator = responseBodyValidation(responseSchemas, { shouldThrowOnValidationError: true });
 
-        try {
-            await validator(createRequest(), context, {
+        await expect(
+            validator(createRequest(), context, {
                 $failed: false,
                 $result: { status: 201, jsonBody: {} },
-            });
-        } catch (err) {
-            if (err instanceof ApplicationError) {
-                expect(err.message).toEqual('Response body validation error as there is no schema for status 201');
-                expect(err.status).toEqual(500);
-                expect(err.body).toBeUndefined();
-            }
-        }
-
-        expect.assertions(3);
+            }),
+        ).rejects.toMatchObject({
+            message: 'Response body validation error as there is no schema for status 201',
+            status: 500,
+        });
     });
 
     test('throw no error if the response body does not match the given schema and shouldThrowOnValidationError = false', async () => {
