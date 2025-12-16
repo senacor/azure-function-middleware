@@ -34,7 +34,7 @@
         "url": "https://github.com/senacor/azure-function-middleware/issues"
     },
     "devDependencies": {
-        "@eslint/js": "9.39.1",
+        "@eslint/js": "9.39.2",
         "@types/jest": "30.0.0",
         "@types/node": "20.19.25",
         "axios": "1.13.2",
