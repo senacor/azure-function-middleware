@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 5.0.0 (08.01.2026)
+
+- Remove middleware functions for application insights. We recommend to switch to Open Telementry (
+  see https://learn.microsoft.com/en-us/azure/azure-monitor/app/classic-api
+  and https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-enable).
+
 ## 4.0.2 (04.12.2025)
 - `requestBodyValidation` returns now 400 error response if request body contains invalid json
 
