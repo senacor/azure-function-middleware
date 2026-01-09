@@ -16,7 +16,7 @@ The middleware interface is intuitive, designed for expansion, and integrates se
 
 ```typescript
 import { HttpRequest, InvocationContext, app } from '@azure/functions';
-import { AppInsightForHttpTrigger, middleware, requestBodyValidation } from '@senacor/azure-function-middleware';
+import { middleware, requestBodyValidation } from '@senacor/azure-function-middleware';
 import * as Joi from 'joi';
 
 const httpHandler = async (request: HttpRequest, context: InvocationContext) => {
@@ -33,9 +33,9 @@ app.http('example-function', {
   authLevel: 'anonymous',
   route: 'example',
   handler: middleware(
-    [AppInsightForHttpTrigger.setup, requestBodyValidation(requestBodySchema)], 
+    [requestBodyValidation(requestBodySchema)], 
     httpHandler, 
-    [AppInsightForHttpTrigger.finalize]
+    []
   ),
 });
 
@@ -258,36 +258,6 @@ The `x-ms-client-principal-id` and `x-ms-client-principal-name` header could onl
 
 It is also possible to pass a function to validate a specific header, like checking for basic authentication credentials. 
 This could be done in the following manner `headerAuthentication((headers: Headers) => boolean)`.
-
-### Logging and Tracing with Application Insights
-
-To enhance the logging and tracing with appInsights you can wrap your function with the appInsightWrapper. 
-Currently, this will add request parameters and workflow data into the customProperties, which will make your logs more searchable.
-
-Use the `AppInsightForHttpTrigger` for your http-functions:
-```typescript
-import { HttpHandler, app } from '@azure/functions';
-import { AppInsightForHttpTrigger, middleware } from '@senacor/azure-function-middleware';
-
-export const httpHandler: HttpHandler = async (req, context) => {
-  context.info('Function called');
-
-  return { status: 201 };
-};
-
-app.http('example-function', {
-  methods: ['POST'],
-  authLevel: 'anonymous',
-  route: 'example',
-  handler: middleware([AppInsightForHttpTrigger.setup], httpHandler, [AppInsightForHttpTrigger.finalize]),
-});
-```
-
-and the `AppInsightForNoNHttpTrigger` for functions with different kinds of trigger (e.g. `activityTrigger` or `timerTrigger`).
-
-Per default the request and response bodies of http requests are only logged if the request fails. You can customize this 
-behavior by using `AppInsightForHttpTrigger.finalizeWithConfig(...)` instead of `AppInsightForHttpTrigger.finalizeAppInsight`.
-There you can also provide a function to sanitize the request and response bodies to prevent logging of sensitive data.
 
 ## Support and Contact
 
