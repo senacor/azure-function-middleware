@@ -1,5 +1,4 @@
 import { HttpHandler } from '@azure/functions';
-import { Headers } from 'undici';
 
 import { ApplicationError } from '../error';
 import { BeforeExecutionFunction } from '../middleware';

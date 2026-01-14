@@ -31,7 +31,7 @@ export function requestBodyValidation(
             .catch((error) => {
                 context.error('Error during request body validation:', error);
 
-                if (error instanceof SyntaxError) {
+                if (error instanceof SyntaxError || error?.name === 'SyntaxError') {
                     throw new ApplicationError('Request body contains invalid json', 400, {
                         message: 'Request body contains invalid json',
                     });
