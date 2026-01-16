@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 5.1.0 (14.01.2026)
+
+- Update peer dependency `@azure/functions` to `^4.11.0`
+
 ## 5.0.0 (08.01.2026)
 
 - Remove middleware functions for application insights. We recommend to switch to Open Telementry (

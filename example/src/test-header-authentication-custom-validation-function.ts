@@ -1,7 +1,6 @@
 import { HttpRequest, InvocationContext, app } from '@azure/functions';
 
 import { headerAuthentication, middleware } from '../../src';
-import { Headers } from 'undici';
 
 export const handler = async (request: HttpRequest, context: InvocationContext) => {
     context.info('Function called');
@@ -16,7 +15,7 @@ app.http('test-header-authentication-custom-validation-function', {
         [
             headerAuthentication({
                 validateUsingHeaderFn: async (headers: Headers) => {
-                    return (await headers.get('my-authentication-header')) === 'authenticated';
+                    return headers.get('my-authentication-header') === 'authenticated';
                 },
             }),
         ],
