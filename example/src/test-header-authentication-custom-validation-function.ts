@@ -15,7 +15,7 @@ app.http('test-header-authentication-custom-validation-function', {
         [
             headerAuthentication({
                 validateUsingHeaderFn: async (headers: Headers) => {
-                    return (await headers.get('my-authentication-header')) === 'authenticated';
+                    return headers.get('my-authentication-header') === 'authenticated';
                 },
             }),
         ],
