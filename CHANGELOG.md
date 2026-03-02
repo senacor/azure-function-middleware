@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 5.2.0 (05.03.2026)
+
+- Update to Node.js 22
+
 ## 5.1.1 (03.03.2026)
 
 - Use trusted publishing (see: https://docs.npmjs.com/trusted-publishers)
