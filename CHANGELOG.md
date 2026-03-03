@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 5.1.1 (03.03.2026)
+
+- Use trusted publishing (see: https://docs.npmjs.com/trusted-publishers)
+
 ## 5.1.0 (14.01.2026)
 
 - Update peer dependency `@azure/functions` to `^4.11.0`

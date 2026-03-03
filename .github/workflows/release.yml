@@ -6,38 +6,53 @@ on:
       - master
       - 'alpha/**'
 
+permissions:
+  id-token: write
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [ 20.x ]
-
     steps:
       - uses: actions/checkout@v6
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v6
+
+      - uses: actions/setup-node@v6
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '24'
+          registry-url: "https://registry.npmjs.org"
           cache: 'npm'
+
       - run: npm ci
-      - run: npm run build --if-present
+
+      - run: npm run build
+
       - run: npm run test
-      - name: NPM package release
-        id: publish
-        uses: JS-DevTools/npm-publish@v4
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          access: public
-      - name: Print version update
-        if: steps.publish.outputs.type != 'none'
+
+      - name: Read version
+        id: readPackage
         run: |
-          echo "Version changed: ${{ steps.publish.outputs.old-version }} => ${{ steps.publish.outputs.version }}"
+          echo "name=$(node -p "require('./package.json').name")" >> "$GITHUB_OUTPUT"
+          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Check if version exists
+        id: checkVersion
+        run: |
+          if npm view "${{ steps.readPackage.outputs.name }}@${{ steps.readPackage.outputs.version }}" version >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Version ${{ steps.readPackage.outputs.version }} already exists in registry."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Version ${{ steps.readPackage.outputs.version }} not found in registry; will publish."
+          fi
+
+      - run: npm publish
+        if: steps.checkVersion.outputs.exists == 'false'
+
       - name: Github release
         uses: softprops/action-gh-release@v2
-        if: steps.publish.outputs.type != 'none'
+        if: steps.checkVersion.outputs.exists == 'false'
         with:
-          name: Release v${{ steps.publish.outputs.version }}
-          tag_name: v${{ steps.publish.outputs.version }}
+          name: Release v${{ steps.readPackage.outputs.version }}
+          tag_name: v${{ steps.readPackage.outputs.version }}
           prerelease: ${{ contains(github.head_ref, 'alpha') }}
