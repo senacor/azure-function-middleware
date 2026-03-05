@@ -1,6 +1,6 @@
 {
     "name": "@senacor/azure-function-middleware",
-    "version": "5.1.1",
+    "version": "5.2.0",
     "description": "Middleware for azure functions to handle authentication, authorization, error handling and logging",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -36,7 +36,7 @@
     "devDependencies": {
         "@eslint/js": "10.0.1",
         "@types/jest": "30.0.0",
-        "@types/node": "20.19.35",
+        "@types/node": "22.19.13",
         "axios": "1.13.6",
         "eslint": "10.0.2",
         "eslint-config-prettier": "10.1.8",
