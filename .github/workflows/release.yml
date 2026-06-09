@@ -50,7 +50,7 @@ jobs:
         if: steps.checkVersion.outputs.exists == 'false'
 
       - name: Github release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: steps.checkVersion.outputs.exists == 'false'
         with:
           name: Release v${{ steps.readPackage.outputs.version }}
