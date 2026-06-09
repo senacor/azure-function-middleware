@@ -37,7 +37,7 @@
         "@eslint/js": "10.0.1",
         "@types/jest": "30.0.0",
         "@types/node": "22.19.17",
-        "axios": "1.15.0",
+        "axios": "1.15.2",
         "eslint": "10.2.0",
         "eslint-config-prettier": "10.1.8",
         "eslint-plugin-prettier": "5.5.5",
